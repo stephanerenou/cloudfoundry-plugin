@@ -1,6 +1,0 @@
-<!--
-  This view is used to render the installed plugins page.
--->
-<div>
-  Pushes a project to Cloud Foundry or a CF-based platform (e.g. Stackato) at the end of a build.
-</div>
