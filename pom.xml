@@ -29,6 +29,13 @@
       <name>William Gautier</name>
       <email>william.gautier@hpe.com</email>
     </developer>
+    <developer>
+      <id>olamy</id>
+      <name>Olivier Lamy</name>
+      <email>olamy@apache.org</email>
+      <timezone>Australia/Melbourne</timezone>
+      <url>https://about.me/olamy</url>
+    </developer>
   </developers>
 
   <contributors>
@@ -40,8 +47,8 @@
   </contributors>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/cloudfoundry.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/cloudfoundry.git</developerConnection>
+    <connection>scm:git:git://github.com/jenkinsci/cloudfoundry-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/cloudfoundry-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/cloudfoundry</url>
     <tag>HEAD</tag>
   </scm>
