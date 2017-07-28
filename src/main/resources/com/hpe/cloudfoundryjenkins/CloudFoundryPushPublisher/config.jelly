@@ -17,9 +17,10 @@
   </f:entry>
   <f:validateButton title="Test Connection" progress="Testing..." method="testConnection"
                     with="target,username,password,credentialsId,organization,cloudSpace,selfSigned"/>
-  <f:entry title="Reset app if already exists" field="resetIfExists">
+  <f:invisibleEntry>
+    <!-- no-op as of 2.0.0, preserved for backward compatibility with older plugin releases -->
     <f:checkbox/>
-  </f:entry>
+  </f:invisibleEntry>
   <f:entry title="Plugin timeout (s)" field="pluginTimeout">
     <f:textbox default="120"/>
   </f:entry>
