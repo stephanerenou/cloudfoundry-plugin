@@ -226,6 +226,7 @@
                 <descriptor>src/test/assembly/multi-hello-java.xml</descriptor>
               </descriptors>
               <outputDirectory>src/test/lib</outputDirectory>
+              <attach>false</attach>
             </configuration>
           </execution>
         </executions>
