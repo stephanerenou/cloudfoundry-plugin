@@ -129,6 +129,11 @@ public class CloudFoundryPushPublisher extends Recorder {
         if (result != null && result.isWorseThan(Result.SUCCESS))
             return true;
 
+        FilePath workspace = build.getWorkspace();
+        if (workspace == null) {
+          throw new IllegalStateException("Workspace cannot be null");
+        }
+
         listener.getLogger().println("Cloud Foundry Plugin:");
 
         try {
@@ -211,9 +216,9 @@ public class CloudFoundryPushPublisher extends Recorder {
                 }
             }
 
-            FilePath masterPath = pathOnMaster(build.getWorkspace());
-            if (!masterPath.equals(build.getWorkspace())) {
-              masterPath = transferArtifactsToMaster(masterPath, build.getWorkspace(), manifestChoice, listener);
+            FilePath masterPath = pathOnMaster(workspace);
+            if (masterPath == null || !masterPath.equals(workspace)) {
+              masterPath = transferArtifactsToMaster(masterPath, workspace, manifestChoice, listener);
             }
 
             List<ApplicationManifest> manifests = toManifests(masterPath, manifestChoice);
@@ -302,7 +307,7 @@ public class CloudFoundryPushPublisher extends Recorder {
 
     private FilePath transferArtifactsToMaster(FilePath masterPath, FilePath workspacePath, ManifestChoice manifestChoice, BuildListener listener) throws IOException, InterruptedException {
       FilePath results = masterPath;
-      if (masterPath != workspacePath) {
+      if (masterPath !=null && !masterPath.equals(workspacePath)) {
         listener.getLogger().println("INFO: Looks like we are on a distributed system... Transferring build artifacts from the slave to the master.");
         // only transfer artifacts if we aren't on the master
         FilePath appPath = new FilePath(workspacePath, manifestChoice.appPath == null ? "" : manifestChoice.appPath);
