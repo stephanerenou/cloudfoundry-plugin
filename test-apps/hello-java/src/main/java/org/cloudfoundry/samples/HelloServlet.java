@@ -16,7 +16,7 @@ public class HelloServlet
   public void init() throws ServletException {
     getServletContext().log("sleeping for 1s to help with timeout test");
     try {
-      Thread.sleep(1000L);
+      Thread.sleep(2000L);
       getServletContext().log("waking up now");
     } catch(InterruptedException e) {
       throw new ServletException(e);
