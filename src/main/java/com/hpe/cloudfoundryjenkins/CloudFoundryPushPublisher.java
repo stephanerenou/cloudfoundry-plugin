@@ -6,29 +6,13 @@
 
 package com.hpe.cloudfoundryjenkins;
 
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.*;
-import hudson.security.ACL;
-import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
-import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -202,112 +186,7 @@ public class CloudFoundryPushPublisher extends Recorder {
     }
 
     @Extension
-    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-
-        public static final int DEFAULT_MEMORY = 512;
-        public static final int DEFAULT_INSTANCES = 1;
-        public static final int DEFAULT_TIMEOUT = 60;
-        public static final String DEFAULT_STACK = null; // null stack means it uses the default stack of the target
-
-        @Override
-        public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-            return true;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "Push to Cloud Foundry";
-        }
-
-        /**
-         * This method is called to populate the credentials list on the Jenkins config page.
-         */
-        @SuppressWarnings("unused")
-        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath ItemGroup context,
-                                                     @QueryParameter("target") final String target) {
-            StandardListBoxModel result = new StandardListBoxModel();
-            result.withEmptySelection();
-            result.withMatching(CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
-                    CredentialsProvider.lookupCredentials(
-                            StandardUsernameCredentials.class,
-                            context,
-                            ACL.SYSTEM,
-                            URIRequirementBuilder.fromUri(target).build()
-                    )
-            );
-            return result;
-        }
-
-        /**
-         * This method is called when the "Test Connection" button is clicked on the Jenkins config page.
-         */
-        @SuppressWarnings("unused")
-        public FormValidation doTestConnection(@AncestorInPath ItemGroup context,
-                                               @QueryParameter("target") final String target,
-                                               @QueryParameter("credentialsId") final String credentialsId,
-                                               @QueryParameter("organization") final String organization,
-                                               @QueryParameter("cloudSpace") final String cloudSpace,
-                                               @QueryParameter("selfSigned") final boolean selfSigned) {
-
-            return CloudFoundryUtils.doTestConnection(context, target, credentialsId, organization, cloudSpace, selfSigned);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckTarget(@QueryParameter String value) {
-            if (!value.isEmpty()) {
-                try {
-                    new URL("https://" + value);
-                } catch (MalformedURLException e) {
-                    return FormValidation.error("Malformed URL");
-                }
-            }
-            return FormValidation.validateRequired(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckCredentialsId(@QueryParameter String value) {
-            return FormValidation.validateRequired(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckOrganization(@QueryParameter String value) {
-            return FormValidation.validateRequired(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckCloudSpace(@QueryParameter String value) {
-            return FormValidation.validateRequired(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckPluginTimeout(@QueryParameter String value) {
-            return FormValidation.validatePositiveInteger(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckMemory(@QueryParameter String value) {
-            return FormValidation.validatePositiveInteger(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckInstances(@QueryParameter String value) {
-            return FormValidation.validatePositiveInteger(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckTimeout(@QueryParameter String value) {
-            return FormValidation.validatePositiveInteger(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckAppName(@QueryParameter String value) {
-            return FormValidation.validateRequired(value);
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckHostname(@QueryParameter String value) {
-            return FormValidation.validateRequired(value);
-        }
+    public static final class DescriptorImpl extends AbstractCloudFoundryPushDescriptor<Publisher> {
     }
 
     /**
