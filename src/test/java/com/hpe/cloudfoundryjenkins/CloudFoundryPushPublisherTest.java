@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -70,6 +72,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
 import org.junit.ClassRule;
+import reactor.core.publisher.Flux;
 
 public class CloudFoundryPushPublisherTest {
 
@@ -199,6 +202,17 @@ public class CloudFoundryPushPublisherTest {
             .blockLast();
     }
 
+    private static List<String> getAppURIs(String appName) {
+      return cloudFoundryOperations.applications()
+          .list()
+          .filter(app -> app.getName().equals(appName))
+          .map(app -> app.getUrls())
+          .flatMap(Flux::fromIterable)
+          .map(fqdn -> "https://" + fqdn)
+          .collectList()
+          .block();
+    }
+
     @Before
     public void setupCredentialsAndCleanCloudSpace() throws IOException {
       cleanCloudSpace();
@@ -224,9 +238,9 @@ public class CloudFoundryPushPublisherTest {
 
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
-
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        List<String> appURIs = getAppURIs("hello-java");
+        System.out.println("App URI : " + appURIs.get(0));
+        String uri = appURIs.get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -255,8 +269,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("hello-java").get(0));
+        String uri = getAppURIs("hello-java").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -327,8 +341,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
         assertTrue("Not the correct amount of instances", cloudFoundryOperations.applications().get(GetApplicationRequest.builder().name("hello-java").build()).block().getRunningInstances().equals(4));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("hello-java").get(0));
+        String uri = getAppURIs("hello-java").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -357,8 +371,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloading and installing node"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("heroku-node-js-sample").get(0));
+        String uri = getAppURIs("heroku-node-js-sample").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -383,7 +397,7 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        List<String> appUris = cf.getAppURIs();
+        List<String> appUris = Stream.concat(getAppURIs("hello-java-1").stream(), getAppURIs("hello-java-2").stream()).collect(Collectors.toList());
         System.out.println("App URIs : " + appUris);
 
         String uri1 = appUris.get(0);
@@ -423,8 +437,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("hello-java").get(0));
+        String uri = getAppURIs("hello-java").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -476,8 +490,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("python-env").get(0));
+        String uri = getAppURIs("python-env").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -516,8 +530,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("python-env").get(0));
+        String uri = getAppURIs("python-env").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -548,8 +562,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("hello-spring-mysql").get(0));
+        String uri = getAppURIs("hello-spring-mysql").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -587,8 +601,8 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        System.out.println("App URI : " + cf.getAppURIs().get(0));
-        String uri = cf.getAppURIs().get(0);
+        System.out.println("App URI : " + getAppURIs("hello-spring-mysql").get(0));
+        String uri = getAppURIs("hello-spring-mysql").get(0);
         HttpResponse response = httpClient.execute(new HttpGet(uri));
         int statusCode = response.getStatusLine().getStatusCode();
         assertEquals("Get request did not respond 200 OK", 200, statusCode);
@@ -618,7 +632,7 @@ public class CloudFoundryPushPublisherTest {
         assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
         assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
 
-        assertTrue("App has a routable URI.", cf.getAppURIs().isEmpty());
+        assertTrue("App has a routable URI.", getAppURIs("hello-java").isEmpty());
     }
 
     @Test
