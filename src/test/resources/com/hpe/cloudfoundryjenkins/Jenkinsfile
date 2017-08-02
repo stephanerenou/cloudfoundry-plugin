@@ -21,7 +21,6 @@ pipeline {
                     pluginTimeout: 120,
                     servicesToCreate: [],
                     manifestChoice: [
-                        $class: 'com.hpe.cloudfoundryjenkins.CloudFoundryPushPublisher$ManifestChoice',
                         value: 'manifestFile',
                         manifestFile: 'test-apps/hello-java/target/manifest.yml',
                         appName: null,
