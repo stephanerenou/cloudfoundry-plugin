@@ -71,7 +71,7 @@ public class CloudFoundryPushPublisher extends Recorder {
             return true;
 
         CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, pluginTimeout, servicesToCreate, manifestChoice);
-        return task.perform(build, launcher, listener);
+        return task.perform(build.getWorkspace(), build.getProject(), launcher, listener);
     }
 
     public BuildStepMonitor getRequiredMonitorService() {

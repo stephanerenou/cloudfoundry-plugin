@@ -11,8 +11,8 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.Item;
+import hudson.model.TaskListener;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import java.io.File;
@@ -78,8 +78,7 @@ public class CloudFoundryPushTask {
     this.manifestChoice = manifestChoice;
   }
 
-  public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-    FilePath workspace = build.getWorkspace();
+  public boolean perform(FilePath workspace, Item project, Launcher launcher, TaskListener listener) {
         if (workspace == null) {
           throw new IllegalStateException("Workspace cannot be null");
         }
@@ -91,7 +90,7 @@ public class CloudFoundryPushTask {
 
             List<StandardUsernamePasswordCredentials> standardCredentials = CredentialsProvider.lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
-                    build.getProject(),
+                    project,
                     ACL.SYSTEM,
                     URIRequirementBuilder.fromUri(target).build());
 
@@ -178,7 +177,7 @@ public class CloudFoundryPushTask {
                   .block();
               printStagingLogs(cloudFoundryOperations, listener, manifest.getName());
             }
-            if (!masterPath.equals(build.getWorkspace())) {
+            if (!masterPath.equals(workspace)) {
               masterPath.deleteRecursive();
             }
             return true;
@@ -245,7 +244,7 @@ public class CloudFoundryPushTask {
       }
     }
 
-    private FilePath transferArtifactsToMaster(FilePath masterPath, FilePath workspacePath, CloudFoundryPushPublisher.ManifestChoice manifestChoice, BuildListener listener) throws IOException, InterruptedException {
+    private FilePath transferArtifactsToMaster(FilePath masterPath, FilePath workspacePath, CloudFoundryPushPublisher.ManifestChoice manifestChoice, TaskListener listener) throws IOException, InterruptedException {
       FilePath results = masterPath;
       if (masterPath !=null && !masterPath.equals(workspacePath)) {
         listener.getLogger().println("INFO: Looks like we are on a distributed system... Transferring build artifacts from the slave to the master.");
@@ -296,7 +295,7 @@ public class CloudFoundryPushTask {
     }
 
     private void printStagingLogs(CloudFoundryOperations cloudFoundryOperations,
-                                  final BuildListener listener, String appName) {
+                                  final TaskListener listener, String appName) {
       cloudFoundryOperations.applications().logs(LogsRequest.builder().name(appName).recent(Boolean.TRUE).build())
         .timeout(Duration.ofSeconds(pluginTimeout))
         .doOnNext(applicationLog -> listener.getLogger().println(applicationLog.getMessage()))

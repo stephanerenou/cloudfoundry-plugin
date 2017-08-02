@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    stages {
+        stage('build') {
+            steps {
+              git credentialsId: 'github_sworisbreathing', url: 'https://github.com/sworisbreathing/cloudfoundry-jenkins-plugin.git'
+              withMaven {
+                  sh 'mvn -B -f test-apps/hello-java/pom.xml clean package'
+              }
+            }
+        }
+        stage('deploy') {
+            steps {
+                sh 'cp src/test/cloudfoundry/hello-java-manifest.yml test-apps/hello-java/target/manifest.yml'
+                pushToCloudFoundry(
+                    target: 'api.local.pcfdev.io',
+                    organization: 'pcfdev-org',
+                    cloudSpace: 'pcfdev-space',
+                    credentialsId: 'pcfdev_user',
+                    selfSigned: true,
+                    pluginTimeout: 120,
+                    servicesToCreate: [],
+                    manifestChoice: [
+                        $class: 'com.hpe.cloudfoundryjenkins.CloudFoundryPushPublisher$ManifestChoice',
+                        value: 'manifestFile',
+                        manifestFile: 'test-apps/hello-java/target/manifest.yml',
+                        appName: null,
+                        memory: 0,
+                        hostname: null,
+                        instances: 0,
+                        timeout: 0,
+                        noRoute: false,
+                        appPath: null,
+                        buildpack: null,
+                        stack: null,
+                        command: null,
+                        domain: null,
+                        envVars: [],
+                        servicesNames: []
+                    ]
+                )
+            }
+        }
+    }
+}
