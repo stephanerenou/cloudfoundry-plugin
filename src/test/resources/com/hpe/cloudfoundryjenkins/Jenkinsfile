@@ -21,21 +21,7 @@ pipeline {
                     pluginTimeout: 120,
                     servicesToCreate: [],
                     manifestChoice: [
-                        value: 'manifestFile',
-                        manifestFile: 'test-apps/hello-java/target/manifest.yml',
-                        appName: null,
-                        memory: 0,
-                        hostname: null,
-                        instances: 0,
-                        timeout: 0,
-                        noRoute: false,
-                        appPath: null,
-                        buildpack: null,
-                        stack: null,
-                        command: null,
-                        domain: null,
-                        envVars: [],
-                        servicesNames: []
+                        manifestFile: 'test-apps/hello-java/target/manifest.yml'
                     ]
                 )
             }

@@ -15,6 +15,7 @@ import hudson.tasks.Recorder;
 import org.kohsuke.stapler.DataBoundConstructor;
 import java.util.ArrayList;
 import java.util.List;
+import org.kohsuke.stapler.DataBoundSetter;
 
 
 public class CloudFoundryPushPublisher extends Recorder {
@@ -86,32 +87,30 @@ public class CloudFoundryPushPublisher extends Recorder {
      */
     public static class ManifestChoice {
         // This should only be either "manifestFile" or "jenkinsConfig"
-        public final String value;
+        public String value = "manifestFile";
 
         // Variable of the choice "manifestFile". Will be null if 'value' is "jenkinsConfig".
-        public final String manifestFile;
+        public String manifestFile = CloudFoundryUtils.DEFAULT_MANIFEST_PATH;
 
         // Variables of the choice "jenkinsConfig". Will all be null (or 0 or false) if 'value' is "manifestFile".
-        public final String appName;
-        public final int memory;
-        public final String hostname;
-        public final int instances;
-        public final int timeout;
-        public final boolean noRoute;
-        public final String appPath;
-        public final String buildpack;
-        public final String stack;
-        public final String command;
-        public final String domain;
-        public final List<EnvironmentVariable> envVars;
-        public final List<ServiceName> servicesNames;
+        public String appName;
+        public int memory;
+        public String hostname;
+        public int instances;
+        public int timeout;
+        public boolean noRoute;
+        public String appPath;
+        public String buildpack;
+        public String stack;
+        public String command;
+        public String domain;
+        public List<EnvironmentVariable> envVars = new ArrayList<>();
+        public List<ServiceName> servicesNames = new ArrayList<>();
 
-
-        @DataBoundConstructor
         public ManifestChoice(String value, String manifestFile,
-                              String appName, int memory, String hostname, int instances, int timeout, boolean noRoute,
-                              String appPath, String buildpack, String stack, String command, String domain,
-                              List<EnvironmentVariable> envVars, List<ServiceName> servicesNames) {
+                                  String appName, int memory, String hostname, int instances, int timeout, boolean noRoute,
+                                  String appPath, String buildpack, String stack, String command, String domain,
+                                  List<EnvironmentVariable> envVars, List<ServiceName> servicesNames) {
             if (value == null) {
                 this.value = "manifestFile";
             } else {
@@ -138,13 +137,151 @@ public class CloudFoundryPushPublisher extends Recorder {
             this.servicesNames = servicesNames;
         }
 
+        @DataBoundConstructor
+        public ManifestChoice() {
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        @DataBoundSetter
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+        public String getManifestFile() {
+            return manifestFile;
+        }
+
+        @DataBoundSetter
+        public void setManifestFile(String manifestFile) {
+            this.manifestFile = manifestFile;
+        }
+
+        public String getAppName() {
+            return appName;
+        }
+
+        @DataBoundSetter
+        public void setAppName(String appName) {
+            this.appName = appName;
+        }
+
+        public int getMemory() {
+            return memory;
+        }
+
+        @DataBoundSetter
+        public void setMemory(int memory) {
+            this.memory = memory;
+        }
+
+        public String getHostname() {
+            return hostname;
+        }
+
+        @DataBoundSetter
+        public void setHostname(String hostname) {
+            this.hostname = hostname;
+        }
+
+        public int getInstances() {
+            return instances;
+        }
+
+        @DataBoundSetter
+        public void setInstances(int instances) {
+            this.instances = instances;
+        }
+
+        public int getTimeout() {
+            return timeout;
+        }
+
+        @DataBoundSetter
+        public void setTimeout(int timeout) {
+            this.timeout = timeout;
+        }
+
+        public boolean isNoRoute() {
+            return noRoute;
+        }
+
+        @DataBoundSetter
+        public void setNoRoute(boolean noRoute) {
+            this.noRoute = noRoute;
+        }
+
+        public String getAppPath() {
+            return appPath;
+        }
+
+        @DataBoundSetter
+        public void setAppPath(String appPath) {
+            this.appPath = appPath;
+        }
+
+        public String getBuildpack() {
+            return buildpack;
+        }
+
+        @DataBoundSetter
+        public void setBuildpack(String buildpack) {
+            this.buildpack = buildpack;
+        }
+
+        public String getStack() {
+            return stack;
+        }
+
+        @DataBoundSetter
+        public void setStack(String stack) {
+            this.stack = stack;
+        }
+
+        public String getCommand() {
+            return command;
+        }
+
+        @DataBoundSetter
+        public void setCommand(String command) {
+            this.command = command;
+        }
+
+        public String getDomain() {
+            return domain;
+        }
+
+        @DataBoundSetter
+        public void setDomain(String domain) {
+            this.domain = domain;
+        }
+
+        public List<EnvironmentVariable> getEnvVars() {
+            return envVars;
+        }
+
+        @DataBoundSetter
+        public void setEnvVars(List<EnvironmentVariable> envVars) {
+            this.envVars = envVars;
+        }
+
+        public List<ServiceName> getServicesNames() {
+            return servicesNames;
+        }
+
+        @DataBoundSetter
+        public void setServicesNames(List<ServiceName> servicesNames) {
+            this.servicesNames = servicesNames;
+        }
+
         /**
          * Constructs a ManifestChoice with the default settings for using a manifest file.
          * This is mostly for easier unit tests.
          */
         public static ManifestChoice defaultManifestFileConfig() {
-            return new ManifestChoice("manifestFile", CloudFoundryUtils.DEFAULT_MANIFEST_PATH,
-                    null, 0, null, 0, 0, false, null, null, null, null, null, null, null);
+            return new ManifestChoice();
         }
     }
 
