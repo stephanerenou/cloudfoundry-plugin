@@ -10,6 +10,106 @@ configuration of a manifest.yml file, or write your settings in the Jenkins buil
 **For reporting an issue, please use the
 [Jenkins issue tracker](https://issues.jenkins-ci.org/browse/JENKINS/component/19824/).**
 
+Usage
+-----
+
+## As a Build Step / Post-Build Action
+Add the plugin to your Jenkins job, either as a build step or as a post-build action.
+
+![example with manifest](./doc-images/example-manifest.png)
+
+### Configuration Options
+
+<dl>
+  <dt>Target</dt><dd>The fully-qualified domain name of the CloudFoundry API</dd>
+  <dt>Credentials</dt><dd>Credentials passed to CloudFoundry for the push</dd>
+  <dt>Organization</dt><dd>The organization in CloudFoundry</dd>
+  <dt>Space</dt><dd>The space in your organization</dd>
+  <dt>Allow self-signed certificate</dt><dd>Ignore SSL errors when connecting to
+      CloudFoundry API. Not recommended for production systems.</dd>
+  <dt>Plugin timeout (s)</dt><dd>Timeout for all CloudFoundry API operations.
+      (note: this is for the CF APIs, and is not the application startup timeout)
+  <dt>Create Services before pushing</dt><dd>If the Jenkins job should also
+      create CloudFoundry services before pushing the application, they can be
+      defined here. Service configuration options are:<dl>
+        <dt>Name</dt><dd>Name of the service instance. This should match the
+            service name defined in your manifest, for service binding</dd>
+        <dt>Type</dt><dd>Service instance type. The available types vary for
+            each CloudFoundry installation. Check your CloudFoundry marketplace
+            for details of what is available in your environment.</dd>
+        <dt>Plan</dt><dd>Plan to use for your service instance. The available
+            plans for a given service type vary for each CloudFoundry
+            installation. Check your CloudFoundry marketplace for details of
+            what is available in your environment, as well as pricing.</dd>
+        <dt>Reset service if already exists</dt><dd>Delete the service and
+            re-create it. Not recommended for production systems, since it will
+            likely delete any data stored in the service.</dd>
+      </dl>
+  </dd>
+  <dt>Read configuration from a manifest file</dt><dd>When enabled, Jenkins will
+      read the CloudFoundry configuration from a manifest file.<dl>
+      <dt>Manifest file</dt><dd>Path to the manifest file (relative to the workspace)</dd>
+  </dl></dd>
+  <dt>Enter configuration in Jenkins</dt><dd>When enabled, the manifest will be
+      defined in the Jenkins job itself. The available settings to configure
+      are:<dl>
+        <dt>Application Name</dt><dd>Name of the application in CloudFoundry</dd>
+        <dt>Memory (MB)</dt><dd>The amount of memory to allocate for the
+            application, in megabytes</dd>
+        <dt>Hostname</dt><dd>The hostname to use for your application.</dd>
+        <dt>Instances</dt><dd>The number of instances to deploy</dd>
+        <dt>Timeout (s)</dt><dd>Application startup timeout, in seconds. Note
+            that this is not the same setting as the plugin timeout.</dd>
+        <dt>Custom buildpack</dt><dd>If your application requires a custom
+            buildpack, enter it here. Leave this blank to allow CloudFoundry to
+            auto-detect your buildpack.</dd>
+        <dt>Custom stack</dt><dd>Specify any custom CloudFoundry stack to use.
+            Leave this blank to use the default stack.</dd>
+        <dt>Environment Variables</dt><dd>Use this to define any additional
+            environment variables for your application instances</dd>
+        <dt>Services</dt><dd>Specify any services for binding the application.
+            Note: if you have specified services to create above, add their
+            names here.</dd>
+        <dt>Do not create a route</dt><dd>If enabled, CloudFoundry will not
+            define a route for this application to be accessed outside the
+            CloudFoundry platform. This may be useful if the application is
+            meant to be used only by other applications running in
+            CloudFoundry.</dd>
+        <dt>Application Path</dt><dd>The path (relative to your workspace) for
+            the application artifact. If left blank, your entire workspace will
+            be pushed.</dd>
+        <dt>Start command</dt><dd>Specify an alternative command to start the
+            application. Leave blank to use the buildpack's default start
+            command.</dd>
+        <dt>Domain</dt><dd>Domain for the application route. Leave blank to
+            use the default CloudFoundry domain.</dd>
+      </dl>
+  </dd>
+</dl>
+
+## As a Pipeline Step
+
+For Pipeline jobs, use the `pushToCloudFoundry` step (or its alias, `cfPush`).
+Configuration settings are the same as above.
+
+Note that the `credentialsId` is the ID of your CloudFoundry credentials
+(**Jenkins Home > Credentials**)
+
+```groovy
+pushToCloudFoundry(
+    target: 'api.local.pcfdev.io',
+    organization: 'pcfdev-org',
+    cloudSpace: 'pcfdev-space',
+    credentialsId: 'pcfdev_user',
+    selfSigned: true,
+    pluginTimeout: 120,
+    servicesToCreate: [],
+    manifestChoice: [
+        manifestFile: 'test-apps/hello-java/target/manifest.yml'
+    ]
+)
+```
+
 Debugging:
 ----------
 This will launch a Jenkins instance for you with the plugin pre-installed. The Jenkins files will be stored in the
