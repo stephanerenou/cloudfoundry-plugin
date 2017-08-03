@@ -23,6 +23,7 @@ import java.util.List;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * Jenkins build step for CloudFoundry push.
@@ -35,31 +36,61 @@ public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep 
     public String organization;
     public String cloudSpace;
     public String credentialsId;
-    public boolean selfSigned;
-    public int pluginTimeout;
-    public List<CloudFoundryPushPublisher.Service> servicesToCreate;
-    public CloudFoundryPushPublisher.ManifestChoice manifestChoice;
+    public boolean selfSigned = false;
+    public int pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
+    public List<CloudFoundryPushPublisher.Service> servicesToCreate = new ArrayList<>();
+    public CloudFoundryPushPublisher.ManifestChoice manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
 
     @DataBoundConstructor
     public CloudFoundryPushBuilder(String target, String organization, String cloudSpace,
-                                   String credentialsId, boolean selfSigned,
-                                   int pluginTimeout, List<CloudFoundryPushPublisher.Service> servicesToCreate,
-                                   CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
+                                   String credentialsId) {
         this.target = target;
         this.organization = organization;
         this.cloudSpace = cloudSpace;
         this.credentialsId = credentialsId;
+    }
+
+    public boolean isSelfSigned() {
+        return selfSigned;
+    }
+
+    @DataBoundSetter
+    public void setSelfSigned(boolean selfSigned) {
         this.selfSigned = selfSigned;
-        if (pluginTimeout == 0) {
+    }
+
+    public int getPluginTimeout() {
+        return pluginTimeout;
+    }
+
+    @DataBoundSetter
+    public void setPluginTimeout(int pluginTimeout) {
+        if (pluginTimeout <= 0) {
             this.pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
         } else {
             this.pluginTimeout = pluginTimeout;
         }
+    }
+
+    public List<CloudFoundryPushPublisher.Service> getServicesToCreate() {
+        return servicesToCreate;
+    }
+
+    @DataBoundSetter
+    public void setServicesToCreate(List<CloudFoundryPushPublisher.Service> servicesToCreate) {
         if (servicesToCreate == null) {
             this.servicesToCreate = new ArrayList<>();
         } else {
             this.servicesToCreate = servicesToCreate;
         }
+    }
+
+    public CloudFoundryPushPublisher.ManifestChoice getManifestChoice() {
+        return manifestChoice;
+    }
+
+    @DataBoundSetter
+    public void setManifestChoice(CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
         if (manifestChoice == null) {
             this.manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
         } else {

@@ -311,14 +311,27 @@ public class CloudFoundryPushPublisher extends Recorder {
         public final String name;
         public final String type;
         public final String plan;
-        public final boolean resetService;
+        public boolean resetService;
 
         @DataBoundConstructor
-        public Service(String name, String type, String plan, boolean resetService) {
+        public Service(String name, String type, String plan) {
             this.name = name;
             this.type = type;
             this.plan = plan;
+        }
+
+        public Service(String name, String type, String plan, boolean resetService) {
+            this(name, type, plan);
             this.resetService = resetService;
+        }
+
+        @DataBoundSetter
+        public void setResetService(boolean resetService) {
+            this.resetService = resetService;
+        }
+
+        public boolean isResetService() {
+            return resetService;
         }
     }
 

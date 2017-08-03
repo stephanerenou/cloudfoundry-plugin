@@ -95,16 +95,32 @@ Configuration settings are the same as above.
 Note that the `credentialsId` is the ID of your CloudFoundry credentials
 (**Jenkins Home > Credentials**)
 
+Minimal configuration:
+```groovy
+pushToCloudFoundry(
+    target: 'api.local.pcfdev.io',
+    organization: 'pcfdev-org',
+    cloudSpace: 'pcfdev-space',
+    credentialsId: 'pcfdev_user'
+)
+```
+
+Full configuration:
 ```groovy
 pushToCloudFoundry(
     target: 'api.local.pcfdev.io',
     organization: 'pcfdev-org',
     cloudSpace: 'pcfdev-space',
     credentialsId: 'pcfdev_user',
-    selfSigned: true,
-    pluginTimeout: 120,
-    servicesToCreate: [],
-    manifestChoice: [
+    selfSigned: true, // default value is false
+    pluginTimeout: 240, // default value is 120
+    servicesToCreate: [
+      [name: 'mysql-spring', type: 'p-mysql', plan: '512', resetService: true]
+    ],
+    envVars: [
+      [key: 'FOO', value: 'bar']
+    ],
+    manifestChoice: [ // optional... defaults to manifestFile: manifest.yml
         manifestFile: 'test-apps/hello-java/target/manifest.yml'
     ]
 )
