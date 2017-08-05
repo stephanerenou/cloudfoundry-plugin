@@ -32,15 +32,53 @@ import org.kohsuke.stapler.DataBoundSetter;
  */
 public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep {
 
+    /**
+     * The cloudfoundry api target.
+     */
     public String target;
+
+    /**
+     * The cloudfoundry organization.
+     */
     public String organization;
+
+    /**
+     * The cloudfoundry space.
+     */
     public String cloudSpace;
+
+    /**
+     * The jenkins credentials id for cloudfoundry.
+     */
     public String credentialsId;
+
+    /**
+     * Whether to ignore ssl validation errors.
+     */
     public boolean selfSigned = false;
+
+    /**
+     * Timeout for all cloudfoundry api calls.
+     */
     public int pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
+
+    /**
+     * Services to create before pushing.
+     */
     public List<CloudFoundryPushPublisher.Service> servicesToCreate = new ArrayList<>();
+
+    /**
+     * Manifest to use.
+     */
     public CloudFoundryPushPublisher.ManifestChoice manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
 
+    /**
+     * Creates a new CloudFoundryPushBuilder.
+     * @param target the cloudfoundry api target
+     * @param organization the cloudfoundry organization
+     * @param cloudSpace the cloudfoundry space
+     * @param credentialsId the credentials to use
+     */
     @DataBoundConstructor
     public CloudFoundryPushBuilder(String target, String organization, String cloudSpace,
                                    String credentialsId) {
@@ -50,19 +88,31 @@ public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep 
         this.credentialsId = credentialsId;
     }
 
+    /**
+     * @return {@code true} if ssl validation errors should be ignored.
+     */
     public boolean isSelfSigned() {
         return selfSigned;
     }
 
+    /**
+     * @param selfSigned {@code true} to ignore ssl validation errors
+     */
     @DataBoundSetter
     public void setSelfSigned(boolean selfSigned) {
         this.selfSigned = selfSigned;
     }
 
+    /**
+     * @return the plugin timeout
+     */
     public int getPluginTimeout() {
         return pluginTimeout;
     }
 
+    /**
+     * @param pluginTimeout the timeout for cloudfoundry api calls
+     */
     @DataBoundSetter
     public void setPluginTimeout(int pluginTimeout) {
         if (pluginTimeout <= 0) {
@@ -72,10 +122,16 @@ public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep 
         }
     }
 
+    /**
+     * @return the services to create before pushing
+     */
     public List<CloudFoundryPushPublisher.Service> getServicesToCreate() {
         return servicesToCreate;
     }
 
+    /**
+     * @param servicesToCreate the services to create before pushing
+     */
     @DataBoundSetter
     public void setServicesToCreate(List<CloudFoundryPushPublisher.Service> servicesToCreate) {
         if (servicesToCreate == null) {
@@ -85,10 +141,16 @@ public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep 
         }
     }
 
+    /**
+     * @return the manifest to use
+     */
     public CloudFoundryPushPublisher.ManifestChoice getManifestChoice() {
         return manifestChoice;
     }
 
+    /**
+     * @param manifestChoice the manifest to use
+     */
     @DataBoundSetter
     public void setManifestChoice(CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
         if (manifestChoice == null) {
@@ -132,6 +194,9 @@ public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep 
       return BuildStepMonitor.NONE; // per SimpleBuildStep javadoc
     }
 
+    /**
+     * Step descriptor.
+     */
     @Symbol({"pushToCloudFoundry", "cfPush"})
     @Extension
     public static final class DescriptorImpl extends AbstractCloudFoundryPushDescriptor<Builder> {

@@ -42,12 +42,23 @@ public class DeploymentInfo {
     private String domain;
     private String stack;
 
-    private Map<String, String> envVars = new HashMap<String, String>();
-    private List<String> servicesNames = new ArrayList<String>();
+    private Map<String, String> envVars = new HashMap<>();
+    private List<String> servicesNames = new ArrayList<>();
 
     /**
      * Constructor for reading the manifest.yml file.
      * Takes an appInfo Map that is created from a ManifestReader.
+     * @param build the build
+     * @param listener the listener
+     * @param logger the build logger
+     * @param appInfo the app info
+     * @param jenkinsBuildName the build name
+     * @param defaultDomain the domain
+     * @param manifestPath the manifest path
+     * @throws IOException if the manfiest cannot be read
+     * @throws ManifestParsingException if the manifest cannot be parsed
+     * @throws InterruptedException if blocking calls are interrupted
+     * @throws MacroEvaluationException if token macros fail to evaluate
      */
     public DeploymentInfo(AbstractBuild build, TaskListener listener, PrintStream logger, Map<String, Object> appInfo,
                           String jenkinsBuildName, String defaultDomain, String manifestPath)
@@ -59,6 +70,16 @@ public class DeploymentInfo {
 
     /**
      * Constructor for reading the optional Jenkins config.
+     * @param build the build
+     * @param listener the build listener
+     * @param logger the logger
+     * @param optionalJenkinsConfig optional manifest configuration
+     * @param jenkinsBuildName the job name
+     * @param defaultDomain the default domain
+     * @throws IOException if the manfiest cannot be read
+     * @throws ManifestParsingException if the manifest cannot be parsed
+     * @throws InterruptedException if blocking calls are interrupted
+     * @throws MacroEvaluationException if token macros fail to evaluate
      */
     public DeploymentInfo(AbstractBuild build, TaskListener listener, PrintStream logger,
                           ManifestChoice optionalJenkinsConfig, String jenkinsBuildName, String defaultDomain)
@@ -70,6 +91,15 @@ public class DeploymentInfo {
 
     /**
      * Constructor for reading the manifest.yml file. (Without token expansion)
+     * @param logger the logger
+     * @param appInfo the app info
+     * @param jenkinsBuildName the job name
+     * @param defaultDomain the default domain
+     * @param manifestPath path to the manifest file
+     * @throws IOException if the manfiest cannot be read
+     * @throws ManifestParsingException if the manifest cannot be parsed
+     * @throws InterruptedException if blocking calls are interrupted
+     * @throws MacroEvaluationException if token macros fail to evaluate
      */
     public DeploymentInfo(PrintStream logger, Map<String, Object> appInfo,
                           String jenkinsBuildName, String defaultDomain, String manifestPath)
@@ -80,6 +110,14 @@ public class DeploymentInfo {
 
     /**
      * Constructor for reading the optional Jenkins config. (Without token expansion)
+     * @param logger the job logger
+     * @param optionalJenkinsConfig the jenkins config
+     * @param jenkinsBuildName the build name
+     * @param defaultDomain the domain
+     * @throws IOException if the manfiest cannot be read
+     * @throws ManifestParsingException if the manifest cannot be parsed
+     * @throws InterruptedException if blocking calls are interrupted
+     * @throws MacroEvaluationException if token macros fail to evaluate
      */
     public DeploymentInfo(PrintStream logger, ManifestChoice optionalJenkinsConfig,
                           String jenkinsBuildName, String defaultDomain)
@@ -93,7 +131,7 @@ public class DeploymentInfo {
 
         // Important optional attributes, we should warn in case they are missing
         if (manifestJson == null) {
-            manifestJson = new HashMap<String, Object>();
+            manifestJson = new HashMap<>();
         }
 
         appName = (String) manifestJson.get("name");
@@ -297,7 +335,7 @@ public class DeploymentInfo {
         this.command = TokenMacro.expandAll(build, listener, this.command);
         this.domain = TokenMacro.expandAll(build, listener, this.domain);
 
-        Map<String, String> expandedEnvVars = new HashMap<String, String>();
+        Map<String, String> expandedEnvVars = new HashMap<>();
         for (Map.Entry<String, String> entry : this.envVars.entrySet()) {
             try {
                 String expandedEnvVarName = TokenMacro.expandAll(build, listener, entry.getKey());
@@ -311,7 +349,7 @@ public class DeploymentInfo {
         }
         this.envVars = expandedEnvVars;
 
-        List<String> expandedServicesNames = new ArrayList<String>();
+        List<String> expandedServicesNames = new ArrayList<>();
         for (String serviceName : this.servicesNames) {
             String expandedServiceName = TokenMacro.expandAll(build, listener, serviceName);
             expandedServicesNames.add(expandedServiceName);

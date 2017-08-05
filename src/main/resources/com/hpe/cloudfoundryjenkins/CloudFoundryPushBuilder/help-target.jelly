@@ -3,4 +3,7 @@
   The API endpoint of the platform you want to push to.
   <br/>
   This is the URL you use to access the platform, possibly with ".api" added.
+  <br/>
+  Unless otherwise specified (i.e. by specifying <code>http://your.api.endpoint</code>),
+  the scheme is be assumed to be https.
 </div>

@@ -34,11 +34,14 @@ public class ManifestReader {
     /**
      * Returns a raw Map containing all the information of a single app
      * that was in the manifest file, including the global information applicable.
+     * @param appName the app name
+     * @throws ManifestParsingException if the manifest cannot be parsed
+     * @return the application info
      */
     public Map<String, Object> getApplicationInfo(String appName) throws ManifestParsingException {
         Map<String, Object> result = getApplicationMap(appName);
         if (result == null) {
-            result = new HashMap<String, Object>();
+            result = new HashMap<>();
         }
         return result;
         // TODO: get global map and combine both global and app map
@@ -46,6 +49,8 @@ public class ManifestReader {
 
     /**
      * Alias for getApplicationInfo(String appName) that returns info for the first app.
+     * @throws ManifestParsingException if the manifest cannot be parsed
+     * @return the application info
      */
     public Map<String, Object> getApplicationInfo() throws ManifestParsingException {
         return getApplicationMap(null);

@@ -10,7 +10,6 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import hudson.ProxyConfiguration;
-import hudson.model.Hudson;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.net.ssl.SSLPeerUnverifiedException;
+import jenkins.model.Jenkins;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
@@ -40,7 +40,14 @@ import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
  */
 public class CloudFoundryUtils {
 
+    /**
+     * Default manifest file path. (<code>manifest.yml</code>)
+     */
     static final String DEFAULT_MANIFEST_PATH = "manifest.yml";
+
+    /**
+     * Default plugin timeout (120).
+     */
     static final int DEFAULT_PLUGIN_TIMEOUT = 120;
 
     /**
@@ -49,10 +56,10 @@ public class CloudFoundryUtils {
      * @return either {@link Optional#empty()} or the proxy configuration.
      */
     static Optional<org.cloudfoundry.reactor.ProxyConfiguration> buildProxyConfiguration(URL targetURL) {
-        Hudson hudson = Hudson.getInstance();
-        if (hudson == null) return Optional.empty();
+        Jenkins jenkins = Jenkins.getInstance();
+        if (jenkins == null) return Optional.empty();
 
-        ProxyConfiguration proxyConfig = hudson.proxy;
+        ProxyConfiguration proxyConfig = jenkins.proxy;
         if (proxyConfig == null) {
             return Optional.empty();
         }
@@ -70,6 +77,16 @@ public class CloudFoundryUtils {
             .build());
     }
 
+    /**
+     * Tests the connection settings.
+     * @param context the context
+     * @param target the cloudfoundry target
+     * @param credentialsId the ID of the credentials to use for cloudfoundry
+     * @param organization the cloudfoundry organization to use
+     * @param cloudSpace the cloudfoundry space to use
+     * @param selfSigned {@code true} to ignore ssl validation errors
+     * @return the form validation result
+     */
     static FormValidation doTestConnection(final ItemGroup context,
                                                final String target,
                                                final String credentialsId,
@@ -77,7 +94,7 @@ public class CloudFoundryUtils {
                                                final String cloudSpace,
                                                final boolean selfSigned) {
         try {
-            URL targetUrl = new URL("https://" + target);
+            URL targetUrl = target.startsWith("http://") || target.startsWith("https://") ? new URL(target) : new URL("https://" + target);
             List<StandardUsernamePasswordCredentials> standardCredentials = CredentialsProvider.lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
                     context,

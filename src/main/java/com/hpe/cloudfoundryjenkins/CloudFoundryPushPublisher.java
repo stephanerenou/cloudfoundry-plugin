@@ -17,21 +17,72 @@ import java.util.ArrayList;
 import java.util.List;
 import org.kohsuke.stapler.DataBoundSetter;
 
-
+/**
+ * Post-build action for pushing to CloudFoundry.
+ * @author williamg
+ * @author Steven Swor
+ */
 public class CloudFoundryPushPublisher extends Recorder {
 
+    /**
+     * The cloudfoundry api target.
+     */
     public String target;
+
+    /**
+     * The cloudfoundry organization.
+     */
     public String organization;
+
+    /**
+     * The cloudfoundry space.
+     */
     public String cloudSpace;
+ 
+    /**
+     * The jenkins credentials id for cloudfoundry.
+     */
     public String credentialsId;
+
+    /**
+     * Whether to ignore ssl validation errors.
+     */
     public boolean selfSigned;
+
+    /**
+     * Whether to reset the app if it already existed.
+     * <i>Note:</i> Since version 2.0 of the plugin, this setting has no
+     * effect.
+     */
     public boolean resetIfExists;
+
+    /**
+     * Timeout for all cloudfoundry api calls.
+     */
     public int pluginTimeout;
+
+    /**
+     * Services to create before pushing.
+     */
     public List<Service> servicesToCreate;
+
+    /**
+     * Manifest to use.
+     */
     public ManifestChoice manifestChoice;
 
     /**
      * The constructor is databound from the Jenkins config page, which is defined in config.jelly.
+     * @param target the cloudfoundry api target
+     * @param organization the cloudfoundry organization
+     * @param cloudSpace the cloudfoundry space
+     * @param credentialsId the credentials to use
+     * @param selfSigned {@code true} to ignore ssl validation errors
+     * @param resetIfExists {@code true} to reset the app if it already exists
+     * (<i>Note:</i> since version 2.0 of the plugin, this setting has no effect).
+     * @param pluginTimeout the timeout for cloudfoundry api calls
+     * @param servicesToCreate services to create before pushing
+     * @param manifestChoice the manifest to use
      */
     @DataBoundConstructor
     public CloudFoundryPushPublisher(String target, String organization, String cloudSpace,
@@ -50,7 +101,7 @@ public class CloudFoundryPushPublisher extends Recorder {
             this.pluginTimeout = pluginTimeout;
         }
         if (servicesToCreate == null) {
-            this.servicesToCreate = new ArrayList<Service>();
+            this.servicesToCreate = new ArrayList<>();
         } else {
             this.servicesToCreate = servicesToCreate;
         }
@@ -63,6 +114,10 @@ public class CloudFoundryPushPublisher extends Recorder {
 
     /**
      * This is the main method, which gets called when the plugin must run as part of a build.
+     * @param build {@inheritDoc}
+     * @param launcher {@inheritDoc}
+     * @param listener {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
@@ -75,6 +130,11 @@ public class CloudFoundryPushPublisher extends Recorder {
         return task.perform(build.getWorkspace(), build.getProject(), launcher, listener);
     }
 
+    /**
+     * Gets the required monitor service (NONE).
+     * @return the required monitor service (NONE)
+     */
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
@@ -279,6 +339,7 @@ public class CloudFoundryPushPublisher extends Recorder {
         /**
          * Constructs a ManifestChoice with the default settings for using a manifest file.
          * This is mostly for easier unit tests.
+         * @return the default manifest
          */
         public static ManifestChoice defaultManifestFileConfig() {
             return new ManifestChoice();
@@ -346,7 +407,7 @@ public class CloudFoundryPushPublisher extends Recorder {
     @SuppressWarnings("unused")
     private Object readResolve() {
         if (servicesToCreate == null) { // Introduced in 1.4
-            this.servicesToCreate = new ArrayList<Service>();
+            this.servicesToCreate = new ArrayList<>();
         }
         if (pluginTimeout == 0) { // Introduced in 1.5
             this.pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;

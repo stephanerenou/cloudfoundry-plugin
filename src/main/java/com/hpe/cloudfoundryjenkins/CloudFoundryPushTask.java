@@ -86,7 +86,7 @@ public class CloudFoundryPushTask {
         listener.getLogger().println("Cloud Foundry Plugin:");
 
         try {
-            URL targetUrl = new URL("https://" + target);
+            URL targetUrl = target.startsWith("http://") || target.startsWith("https://") ? new URL(target) : new URL("https://" + target);
 
             List<StandardUsernamePasswordCredentials> standardCredentials = CredentialsProvider.lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
