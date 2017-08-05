@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    stages {
+        stage('build') {
+            steps {
+              git url: 'https://github.com/jenkinsci/cloudfoundry-plugin.git'
+              withMaven {
+                  sh 'mvn -B -f test-apps/hello-java/pom.xml clean package'
+              }
+              sh 'cp src/test/cloudfoundry/hello-java-manifest.yml test-apps/hello-java/target/manifest.yml'
+              stash(
+                  name: 'Distributed hello-pipeline',
+                  includes: 'test-apps/hello-java/target/manifest.yml,test-apps/hello-java/target/*.war'
+              )
+            }
+        }
+        stage('deploy') {
+            steps {
+                unstash(name: 'Distributed hello-pipeline')
+                pushToCloudFoundry(
+                    target: 'api.local.pcfdev.io',
+                    organization: 'pcfdev-org',
+                    cloudSpace: 'pcfdev-space',
+                    credentialsId: 'pcfdev_user',
+                    selfSigned: true,
+                    manifestChoice: [
+                        manifestFile: 'test-apps/hello-java/target/manifest.yml'
+                    ]
+                )
+            }
+        }
+    }
+}
