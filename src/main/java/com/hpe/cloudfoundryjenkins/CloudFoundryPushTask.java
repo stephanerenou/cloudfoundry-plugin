@@ -26,6 +26,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -86,8 +88,6 @@ public class CloudFoundryPushTask {
         listener.getLogger().println("Cloud Foundry Plugin:");
 
         try {
-            URL targetUrl = target.startsWith("http://") || target.startsWith("https://") ? new URL(target) : new URL("https://" + target);
-
             List<StandardUsernamePasswordCredentials> standardCredentials = CredentialsProvider.lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
                     project,
@@ -102,13 +102,7 @@ public class CloudFoundryPushTask {
                 return false;
             }
 
-            // TODO: move this into a CloudFoundryOperations factory method and
-            // share it with doTestConnection.
-            ConnectionContext connectionContext = DefaultConnectionContext.builder()
-                .apiHost(target)
-                .proxyConfiguration(CloudFoundryUtils.buildProxyConfiguration(targetUrl))
-                .skipSslValidation(selfSigned)
-                .build();
+            ConnectionContext connectionContext = createConnectionContext();
 
             TokenProvider tokenProvider = PasswordGrantTokenProvider.builder()
                 .username(credentials.getUsername())
@@ -301,6 +295,63 @@ public class CloudFoundryPushTask {
         .doOnNext(applicationLog -> listener.getLogger().println(applicationLog.getMessage()))
         .blockLast();
 
+    }
+
+    private static final Pattern TARGET_PATTERN = Pattern.compile("((?<scheme>https?)://)?(?<targetFqdn>[^:/]+)(:(?<port>\\d+))?(/.*)?");
+
+    protected URL targetUrl() throws MalformedURLException {
+      String scheme = "https";
+      String targetFqdn = target;
+      Integer port = null;
+      Matcher targetMatcher = TARGET_PATTERN.matcher(target);
+      if (targetMatcher.find()) {
+        if (targetMatcher.group("scheme") != null) {
+          scheme = targetMatcher.group("scheme");
+        }
+        targetFqdn = targetMatcher.group("targetFqdn");
+        String portNumber = targetMatcher.group("port");
+        if (portNumber != null) {
+          port = Integer.parseInt(portNumber);
+        }
+      }
+      StringBuilder sb = new StringBuilder(scheme).append("://").append(targetFqdn);
+      if (port != null) {
+        sb = sb.append(":").append(port.toString());
+      }
+      return new URL(sb.toString());
+    }
+
+    protected ConnectionContext createConnectionContext() throws MalformedURLException {
+      String scheme = "https";
+      Boolean secure = null;
+      String targetFqdn = target;
+      Integer port = null;
+      Matcher targetMatcher = TARGET_PATTERN.matcher(target);
+      if (targetMatcher.find()) {
+        if (targetMatcher.group("scheme") != null) {
+          scheme = targetMatcher.group("scheme");
+          secure = Boolean.valueOf(scheme.endsWith("s"));
+          if (!secure.booleanValue()) {
+            port = Integer.valueOf(80); // set the default http port
+          }
+        }
+        targetFqdn = targetMatcher.group("targetFqdn");
+        String portNumber = targetMatcher.group("port");
+        if (portNumber != null) {
+          port = Integer.parseInt(portNumber);
+        }
+      }
+      DefaultConnectionContext.Builder builder = DefaultConnectionContext.builder()
+                .apiHost(targetFqdn)
+                .proxyConfiguration(CloudFoundryUtils.buildProxyConfiguration(targetUrl()))
+                .skipSslValidation(selfSigned);
+      if (secure != null) {
+        builder = builder.secure(secure.booleanValue());
+      }
+      if (port != null) {
+        builder = builder.port(port);
+      }
+      return builder.build();
     }
 
 }
