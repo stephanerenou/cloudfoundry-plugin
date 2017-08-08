@@ -3,6 +3,7 @@
   */
 package com.hpe.cloudfoundryjenkins;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
@@ -85,7 +86,7 @@ public abstract class AbstractCloudFoundryPushDescriptor<T extends BuildStep & D
     public ListBoxModel doFillCredentialsIdItems(@AncestorInPath ItemGroup context, @QueryParameter(value = "target") final String target) {
         StandardListBoxModel result = new StandardListBoxModel();
         result.includeEmptyValue();
-        result.includeMatchingAs(context instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task)context) : ACL.SYSTEM, context, StandardUsernamePasswordCredentials.class, URIRequirementBuilder.fromUri(target).build(), null);
+        result.includeMatchingAs(context instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task)context) : ACL.SYSTEM, context, StandardUsernamePasswordCredentials.class, URIRequirementBuilder.fromUri(target).build(), CredentialsMatchers.always());
         return result;
     }
 
