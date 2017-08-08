@@ -349,7 +349,7 @@ public class CloudFoundryPushTask {
         builder = builder.secure(secure.booleanValue());
       }
       if (port != null) {
-        builder = builder.port(port.intValue());
+        builder = builder.port(port);
       }
       return builder.build();
     }
