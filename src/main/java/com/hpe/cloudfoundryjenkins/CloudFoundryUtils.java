@@ -9,6 +9,7 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import com.hpe.cloudfoundryjenkins.CloudFoundryPushPublisher.ManifestChoice;
 import hudson.ProxyConfiguration;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
@@ -18,16 +19,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
 import org.cloudfoundry.reactor.ConnectionContext;
-import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.TokenProvider;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
@@ -94,7 +98,6 @@ public class CloudFoundryUtils {
                                                final String cloudSpace,
                                                final boolean selfSigned) {
         try {
-            URL targetUrl = target.startsWith("http://") || target.startsWith("https://") ? new URL(target) : new URL("https://" + target);
             List<StandardUsernamePasswordCredentials> standardCredentials = CredentialsProvider.lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
                     context,
@@ -103,13 +106,10 @@ public class CloudFoundryUtils {
 
             StandardUsernamePasswordCredentials credentials =
                     CredentialsMatchers.firstOrNull(standardCredentials, CredentialsMatchers.withId(credentialsId));
-            // TODO: move this into a CloudFoundryOperations factory method and
-            // share it with perform.
-            ConnectionContext connectionContext = DefaultConnectionContext.builder()
-                .apiHost(target)
-                .proxyConfiguration(CloudFoundryUtils.buildProxyConfiguration(targetUrl))
-                .skipSslValidation(selfSigned)
-                .build();
+
+            CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, DEFAULT_PLUGIN_TIMEOUT, Collections.emptyList(), ManifestChoice.defaultManifestFileConfig());
+
+            ConnectionContext connectionContext = task.createConnectionContext();
 
             PasswordGrantTokenProvider.Builder tokenProviderBuilder = PasswordGrantTokenProvider.builder();
             if (credentials != null) {
@@ -126,13 +126,20 @@ public class CloudFoundryUtils {
             client.info().get(GetInfoRequest.builder().build())
                 .timeout(Duration.ofSeconds(DEFAULT_PLUGIN_TIMEOUT))
                 .block();
-            if (targetUrl.getHost().startsWith("api.")) {
-                return FormValidation.okWithMarkup("<b>Connection successful!</b>");
-            } else {
-                return FormValidation.warning(
-                        "Connection successful, but your target's hostname does not start with \"api.\".\n" +
+            URL targetUrl = task.targetUrl();
+            List<String> warnings = new ArrayList<>();
+            if (!targetUrl.getHost().startsWith("api.")) {
+              warnings.add("Your target's hostname does not start with \"api.\".<br />" +
                                 "Make sure it is the real API endpoint and not a redirection, " +
                                 "or it may cause some problems.");
+            }
+            if (!StringUtils.isEmpty(targetUrl.getPath()) && !targetUrl.getPath().equals("/")) {
+              warnings.add("Your target specifies a path which will be ignored when making CloudFoundry API calls");
+            }
+            if (warnings.isEmpty()) {
+                return FormValidation.okWithMarkup("<b>Connection successful!</b>");
+            } else {
+                return FormValidation.warningWithMarkup("Connection successful, but:<ul><li>" + warnings.stream().collect(Collectors.joining("</li><li>")) + "</li></ul>");
             }
         } catch (MalformedURLException e) {
             return FormValidation.error("Malformed target URL");
