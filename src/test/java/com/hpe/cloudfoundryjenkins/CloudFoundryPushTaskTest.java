@@ -24,9 +24,8 @@ public class CloudFoundryPushTaskTest {
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertFalse("should not explicitly set the secure field", c.getSecure().isPresent());
-    assertEquals("should imply https", "https", c.getScheme());
     assertEquals("should set the target host", targetHost, c.getApiHost());
-    assertEquals("should imply the default https port", Integer.valueOf(443) ,c.getPort());
+    assertFalse("should imply the default https port", c.getPort().isPresent());
   }
 
   @Test
@@ -38,9 +37,9 @@ public class CloudFoundryPushTaskTest {
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertFalse("should not explicitly set the secure field", c.getSecure().isPresent());
-    assertEquals("should imply https", "https", c.getScheme());
     assertEquals("should set the target host", targetHost, c.getApiHost());
-    assertEquals("should explicitly set the port", port ,c.getPort());
+    assertTrue("should explicitly set the port", c.getPort().isPresent());
+    assertEquals("should explicitly set the port", port ,c.getPort().get());
   }
 
   @Test
@@ -52,9 +51,9 @@ public class CloudFoundryPushTaskTest {
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertTrue("should explicitly set the secure field", c.getSecure().isPresent());
     assertFalse("should be insecure", c.getSecure().get().booleanValue());
-    assertEquals("should explicitly set the scheme", "http", c.getScheme());
     assertEquals("should set the target host", targetHost, c.getApiHost());
-    assertEquals("should imply the default http port", Integer.valueOf(80) ,c.getPort());
+    assertTrue("should imply the default http port", c.getPort().isPresent());
+    assertEquals("should imply the default http port", Integer.valueOf(80) ,c.getPort().get());
   }
 
   @Test
@@ -67,9 +66,9 @@ public class CloudFoundryPushTaskTest {
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertTrue("should explicitly set the secure field", c.getSecure().isPresent());
     assertFalse("should be insecure", c.getSecure().get().booleanValue());
-    assertEquals("should explicitly set the scheme", "http", c.getScheme());
     assertEquals("should set the target host", targetHost, c.getApiHost());
-    assertEquals("should explicitly set the port", port ,c.getPort());
+    assertTrue("should explicitly set the port", c.getPort().isPresent());
+    assertEquals("should explicitly set the port", port ,c.getPort().get());
   }
 
 }
