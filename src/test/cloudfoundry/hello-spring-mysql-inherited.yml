@@ -1,0 +1,10 @@
+# Child manifest for inheritance tests (see JENKINS-47271)
+---
+inherit: base-manifest.yml
+applications:
+  - name: hello-spring-mysql-inherited
+    timeout : 180
+    services:
+      - mysql-spring
+    env:
+      SPRING_PROFILES_ACTIVE: abcdef

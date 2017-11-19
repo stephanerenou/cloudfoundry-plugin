@@ -215,7 +215,7 @@ public class CloudFoundryPushTask {
      * @return either the original manifest or a fixed-up version of the manifest
      */
     private ApplicationManifest fixManifest(final FilePath filesPath, final ApplicationManifest manifest) {
-      if (manifest.getPath()==null && StringUtils.isEmpty(manifest.getDockerImage())) {
+      if (manifest.getPath()==null && (manifest.getDocker() == null || StringUtils.isEmpty(manifest.getDocker().getImage()))) {
         try {
           return ApplicationManifest.builder().from(manifest).path(Paths.get(filesPath.toURI())).build();
         } catch(IOException | InterruptedException e) {

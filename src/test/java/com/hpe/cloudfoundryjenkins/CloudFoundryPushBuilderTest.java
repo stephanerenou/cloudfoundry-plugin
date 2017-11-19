@@ -71,6 +71,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
 import org.junit.ClassRule;
+import org.jvnet.hudson.test.Issue;
 import reactor.core.publisher.Flux;
 
 public class CloudFoundryPushBuilderTest {
@@ -697,5 +698,40 @@ public class CloudFoundryPushBuilderTest {
 
         assertTrue("Build succeeded where it should have failed", build.getResult().isWorseOrEqualTo(Result.FAILURE));
         assertTrue("Build did not write error message", s.contains("unauthorized: Bad credentials"));
+    }
+
+    @Test
+    @Issue("JENKINS-47271")
+    public void testManifestInheritance() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.setScm(new ExtractResourceSCM(getClass().getResource("cloudfoundry-hello-spring-mysql-inherited.zip")));
+
+        Service mysqlService = new Service("mysql-spring", TEST_MYSQL_SERVICE_TYPE, TEST_SERVICE_PLAN, true);
+        List<Service> serviceList = new ArrayList<>();
+        serviceList.add(mysqlService);
+
+        CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
+                "testCredentialsId");
+        cf.setSelfSigned(true);
+        cf.setServicesToCreate(serviceList);
+        project.getBuildersList().add(cf);
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        System.out.println(build.getDisplayName() + " completed");
+
+        String log = FileUtils.readFileToString(build.getLogFile());
+        System.out.println(log);
+
+        assertTrue("Build did not succeed", build.getResult().isBetterOrEqualTo(Result.SUCCESS));
+        assertTrue("Build did not display staging logs", log.contains("Downloaded app package"));
+
+        System.out.println("App URI : " + getAppURIs("hello-spring-mysql-inherited").get(0));
+        String uri = getAppURIs("hello-spring-mysql-inherited").get(0);
+        HttpResponse response = httpClient.execute(new HttpGet(uri));
+        int statusCode = response.getStatusLine().getStatusCode();
+        assertEquals("Get request did not respond 200 OK", 200, statusCode);
+        String content = EntityUtils.toString(response.getEntity());
+        System.out.println(content);
+        assertTrue("App did not send back correct text",
+                content.contains("State [id=1, stateCode=MA, name=Massachusetts]"));
     }
 }

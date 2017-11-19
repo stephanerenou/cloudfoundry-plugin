@@ -1,0 +1,7 @@
+# Parent manifest for inheritance tests (see JENKINS-47271)
+---
+instances: 1
+memory: 1G
+buildpack: https://github.com/cloudfoundry/java-buildpack.git#v3.19
+path: hello-spring-mysql-2.0.0.war
+timeout: 180
