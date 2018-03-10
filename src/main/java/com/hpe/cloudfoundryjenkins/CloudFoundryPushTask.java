@@ -273,15 +273,20 @@ public class CloudFoundryPushTask {
       return results;
     }
 
-    private static List<ApplicationManifest> jenkinsConfig(FilePath filesPath, CloudFoundryPushPublisher.ManifestChoice manifestChoice) throws IOException, InterruptedException {
+    private static List<ApplicationManifest> jenkinsConfig(FilePath filesPath, CloudFoundryPushPublisher.ManifestChoice manifestChoice, boolean isOnSlave) throws IOException, InterruptedException {
       ApplicationManifest.Builder manifestBuilder = ApplicationManifest.builder();
       manifestBuilder = !StringUtils.isBlank(manifestChoice.appName) ? manifestBuilder.name(manifestChoice.appName) : manifestBuilder;
       if(isOnSlave)
-       manifestBuilder = !StringUtils.isBlank(manifestChoice.appPath) ? manifestBuilder.path(Paths.get(Paths.get
-               (filesPath.toURI()).toString())) : manifestBuilder.path(Paths.get(filesPath.toURI()));
-      else
-       manifestBuilder = !StringUtils.isBlank(manifestChoice.appPath) ? manifestBuilder.path(Paths.get(Paths.get
-               (filesPath.toURI()).toString(), manifestChoice.appPath)) : manifestBuilder.path(Paths.get(filesPath.toURI()));
+      {
+          manifestBuilder = !StringUtils.isBlank( manifestChoice.appPath )
+              ? manifestBuilder.path( Paths.get( Paths.get( filesPath.toURI() ).toString() ) )
+              : manifestBuilder.path( Paths.get( filesPath.toURI() ) );
+      } else
+      {
+          manifestBuilder = !StringUtils.isBlank( manifestChoice.appPath )
+              ? manifestBuilder.path( Paths.get( Paths.get( filesPath.toURI() ).toString(), manifestChoice.appPath ) )
+              : manifestBuilder.path( Paths.get( filesPath.toURI() ) );
+      }
       manifestBuilder = !StringUtils.isBlank(manifestChoice.buildpack) ? manifestBuilder.buildpack(manifestChoice.buildpack) : manifestBuilder;
       manifestBuilder = !StringUtils.isBlank(manifestChoice.command) ? manifestBuilder.command(manifestChoice.command) : manifestBuilder;
       manifestBuilder = !StringUtils.isBlank(manifestChoice.domain) ? manifestBuilder.domain(manifestChoice.domain) : manifestBuilder;
