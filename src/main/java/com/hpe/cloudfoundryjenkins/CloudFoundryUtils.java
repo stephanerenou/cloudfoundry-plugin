@@ -97,7 +97,7 @@ public class CloudFoundryUtils {
                                                final String credentialsId,
                                                final String organization,
                                                final String cloudSpace,
-                                               final boolean selfSigned) {
+                                               final String selfSigned) {
         try {
             List<StandardUsernamePasswordCredentials> standardCredentials = CredentialsProvider.lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
@@ -108,7 +108,7 @@ public class CloudFoundryUtils {
             StandardUsernamePasswordCredentials credentials =
                     CredentialsMatchers.firstOrNull(standardCredentials, CredentialsMatchers.withId(credentialsId));
 
-            CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, DEFAULT_PLUGIN_TIMEOUT, Collections.emptyList(), ManifestChoice.defaultManifestFileConfig());
+            CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, String.valueOf(DEFAULT_PLUGIN_TIMEOUT), Collections.emptyList(), ManifestChoice.defaultManifestFileConfig());
 
             ConnectionContext connectionContext = task.createConnectionContext(null, null, TaskListener.NULL);
 

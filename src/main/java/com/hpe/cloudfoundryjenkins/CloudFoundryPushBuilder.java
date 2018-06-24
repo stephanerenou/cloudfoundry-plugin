@@ -1,6 +1,6 @@
- /*
+/*
   * © 2017 The original author or authors.
-  */
+ */
 package com.hpe.cloudfoundryjenkins;
 
 import hudson.AbortException;
@@ -32,173 +32,183 @@ import org.kohsuke.stapler.DataBoundSetter;
  */
 public class CloudFoundryPushBuilder extends Builder implements SimpleBuildStep {
 
-    /**
-     * The cloudfoundry api target.
-     */
-    public String target;
+  /**
+   * The cloudfoundry api target.
+   */
+  public String target;
 
-    /**
-     * The cloudfoundry organization.
-     */
-    public String organization;
+  /**
+   * The cloudfoundry organization.
+   */
+  public String organization;
 
-    /**
-     * The cloudfoundry space.
-     */
-    public String cloudSpace;
+  /**
+   * The cloudfoundry space.
+   */
+  public String cloudSpace;
 
-    /**
-     * The jenkins credentials id for cloudfoundry.
-     */
-    public String credentialsId;
+  /**
+   * The jenkins credentials id for cloudfoundry.
+   */
+  public String credentialsId;
 
-    /**
-     * Whether to ignore ssl validation errors.
-     */
-    public boolean selfSigned = false;
+  /**
+   * Whether to ignore ssl validation errors.
+   */
+  public String selfSigned = "false";
 
-    /**
-     * Timeout for all cloudfoundry api calls.
-     */
-    public int pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
+  /**
+   * Timeout for all cloudfoundry api calls.
+   */
+  public String pluginTimeout = String.valueOf(CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT);
 
-    /**
-     * Services to create before pushing.
-     */
-    public List<CloudFoundryPushPublisher.Service> servicesToCreate = new ArrayList<>();
+  /**
+   * Services to create before pushing.
+   */
+  public List<CloudFoundryPushPublisher.Service> servicesToCreate = new ArrayList<>();
 
-    /**
-     * Manifest to use.
-     */
-    public CloudFoundryPushPublisher.ManifestChoice manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
+  /**
+   * Manifest to use.
+   */
+  public CloudFoundryPushPublisher.ManifestChoice manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
 
-    /**
-     * Creates a new CloudFoundryPushBuilder.
-     * @param target the cloudfoundry api target
-     * @param organization the cloudfoundry organization
-     * @param cloudSpace the cloudfoundry space
-     * @param credentialsId the credentials to use
-     */
-    @DataBoundConstructor
-    public CloudFoundryPushBuilder(String target, String organization, String cloudSpace,
-                                   String credentialsId) {
-        this.target = target;
-        this.organization = organization;
-        this.cloudSpace = cloudSpace;
-        this.credentialsId = credentialsId;
-    }
+  /**
+   * Creates a new CloudFoundryPushBuilder.
+   *
+   * @param target the cloudfoundry api target
+   * @param organization the cloudfoundry organization
+   * @param cloudSpace the cloudfoundry space
+   * @param credentialsId the credentials to use
+   */
+  @DataBoundConstructor
+  public CloudFoundryPushBuilder(String target, String organization, String cloudSpace,
+          String credentialsId) {
+    this.target = target;
+    this.organization = organization;
+    this.cloudSpace = cloudSpace;
+    this.credentialsId = credentialsId;
+  }
 
-    /**
-     * @return {@code true} if ssl validation errors should be ignored.
-     */
-    public boolean isSelfSigned() {
-        return selfSigned;
-    }
+  /**
+   * @return {@code true} if ssl validation errors should be ignored.
+   */
+  public String isSelfSigned() {
+    return selfSigned;
+  }
 
-    /**
-     * @param selfSigned {@code true} to ignore ssl validation errors
-     */
-    @DataBoundSetter
-    public void setSelfSigned(boolean selfSigned) {
-        this.selfSigned = selfSigned;
-    }
+  /**
+   * @param selfSigned {@code true} to ignore ssl validation errors
+   */
+  @DataBoundSetter
+  public void setSelfSigned(String selfSigned) {
+    this.selfSigned = selfSigned;
+  }
 
-    /**
-     * @return the plugin timeout
-     */
-    public int getPluginTimeout() {
-        return pluginTimeout;
-    }
+  /**
+   * @return the plugin timeout
+   */
+  public String getPluginTimeout() {
+    return pluginTimeout;
+  }
 
-    /**
-     * @param pluginTimeout the timeout for cloudfoundry api calls
-     */
-    @DataBoundSetter
-    public void setPluginTimeout(int pluginTimeout) {
-        if (pluginTimeout <= 0) {
-            this.pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
+  /**
+   * @param pluginTimeout the timeout for cloudfoundry api calls
+   */
+  @DataBoundSetter
+  public void setPluginTimeout(String pluginTimeout) {
+    if (pluginTimeout == null) {
+      this.pluginTimeout = String.valueOf(CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT);
+    } else {
+      try {
+        int i = Integer.parseInt(pluginTimeout);
+        if (i <= 0) {
+          this.pluginTimeout = String.valueOf(CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT);
         } else {
-            this.pluginTimeout = pluginTimeout;
+          this.pluginTimeout = pluginTimeout;
         }
-    }
-
-    /**
-     * @return the services to create before pushing
-     */
-    public List<CloudFoundryPushPublisher.Service> getServicesToCreate() {
-        return servicesToCreate;
-    }
-
-    /**
-     * @param servicesToCreate the services to create before pushing
-     */
-    @DataBoundSetter
-    public void setServicesToCreate(List<CloudFoundryPushPublisher.Service> servicesToCreate) {
-        if (servicesToCreate == null) {
-            this.servicesToCreate = new ArrayList<>();
-        } else {
-            this.servicesToCreate = servicesToCreate;
-        }
-    }
-
-    /**
-     * @return the manifest to use
-     */
-    public CloudFoundryPushPublisher.ManifestChoice getManifestChoice() {
-        return manifestChoice;
-    }
-
-    /**
-     * @param manifestChoice the manifest to use
-     */
-    @DataBoundSetter
-    public void setManifestChoice(CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
-        if (manifestChoice == null) {
-            this.manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
-        } else {
-            this.manifestChoice = manifestChoice;
-        }
-    }
-
-    @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, pluginTimeout, servicesToCreate, manifestChoice);
-        return task.perform(build.getWorkspace(), build, launcher, listener);
-    }
-
-    @Override
-    public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-      CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, pluginTimeout, servicesToCreate, manifestChoice);
-      if (!task.perform(workspace, run, launcher, listener)) {
-        throw new AbortException("CloudFoundry Push failed.");
+      } catch (NumberFormatException ignored) {
+        this.pluginTimeout = pluginTimeout;
       }
     }
+  }
 
-    @Override
-    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
-      return true; // per SimpleBuildStep javadoc
-    }
+  /**
+   * @return the services to create before pushing
+   */
+  public List<CloudFoundryPushPublisher.Service> getServicesToCreate() {
+    return servicesToCreate;
+  }
 
-    @Override
-    public Action getProjectAction(AbstractProject<?, ?> project) {
-      return null; // per SimpleBuildStep javadoc
+  /**
+   * @param servicesToCreate the services to create before pushing
+   */
+  @DataBoundSetter
+  public void setServicesToCreate(List<CloudFoundryPushPublisher.Service> servicesToCreate) {
+    if (servicesToCreate == null) {
+      this.servicesToCreate = new ArrayList<>();
+    } else {
+      this.servicesToCreate = servicesToCreate;
     }
+  }
 
-    @Override
-    public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
-      return Collections.emptySet(); // per SimpleBuildStep javadoc
-    }
+  /**
+   * @return the manifest to use
+   */
+  public CloudFoundryPushPublisher.ManifestChoice getManifestChoice() {
+    return manifestChoice;
+  }
 
-    @Override
-    public BuildStepMonitor getRequiredMonitorService() {
-      return BuildStepMonitor.NONE; // per SimpleBuildStep javadoc
+  /**
+   * @param manifestChoice the manifest to use
+   */
+  @DataBoundSetter
+  public void setManifestChoice(CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
+    if (manifestChoice == null) {
+      this.manifestChoice = CloudFoundryPushPublisher.ManifestChoice.defaultManifestFileConfig();
+    } else {
+      this.manifestChoice = manifestChoice;
     }
+  }
 
-    /**
-     * Step descriptor.
-     */
-    @Symbol({"pushToCloudFoundry", "cfPush"})
-    @Extension
-    public static final class DescriptorImpl extends AbstractCloudFoundryPushDescriptor<Builder> {
+  @Override
+  public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, pluginTimeout, servicesToCreate, manifestChoice);
+    return task.perform(build.getWorkspace(), build, launcher, listener);
+  }
+
+  @Override
+  public void perform(Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
+    CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, pluginTimeout, servicesToCreate, manifestChoice);
+    if (!task.perform(workspace, run, launcher, listener)) {
+      throw new AbortException("CloudFoundry Push failed.");
     }
+  }
+
+  @Override
+  public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+    return true; // per SimpleBuildStep javadoc
+  }
+
+  @Override
+  public Action getProjectAction(AbstractProject<?, ?> project) {
+    return null; // per SimpleBuildStep javadoc
+  }
+
+  @Override
+  public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
+    return Collections.emptySet(); // per SimpleBuildStep javadoc
+  }
+
+  @Override
+  public BuildStepMonitor getRequiredMonitorService() {
+    return BuildStepMonitor.NONE; // per SimpleBuildStep javadoc
+  }
+
+  /**
+   * Step descriptor.
+   */
+  @Symbol({"pushToCloudFoundry", "cfPush"})
+  @Extension
+  public static final class DescriptorImpl extends AbstractCloudFoundryPushDescriptor<Builder> {
+  }
 }

@@ -101,7 +101,7 @@ public abstract class AbstractCloudFoundryPushDescriptor<T extends BuildStep & D
      * @return the validation result
      */
     @SuppressWarnings(value = "unused")
-    public FormValidation doTestConnection(@AncestorInPath ItemGroup context, @QueryParameter(value = "target") final String target, @QueryParameter(value = "credentialsId") final String credentialsId, @QueryParameter(value = "organization") final String organization, @QueryParameter(value = "cloudSpace") final String cloudSpace, @QueryParameter(value = "selfSigned") final boolean selfSigned) {
+    public FormValidation doTestConnection(@AncestorInPath ItemGroup context, @QueryParameter(value = "target") final String target, @QueryParameter(value = "credentialsId") final String credentialsId, @QueryParameter(value = "organization") final String organization, @QueryParameter(value = "cloudSpace") final String cloudSpace, @QueryParameter(value = "selfSigned") final String selfSigned) {
         return CloudFoundryUtils.doTestConnection(context, target, credentialsId, organization, cloudSpace, selfSigned);
     }
 

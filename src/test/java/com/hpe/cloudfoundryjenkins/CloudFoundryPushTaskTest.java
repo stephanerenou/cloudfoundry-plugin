@@ -20,7 +20,7 @@ public class CloudFoundryPushTaskTest {
   @Test
   public void testCreateConnectionContextJustHost() throws Exception {
     String targetHost = "api.the.cloudfoundry.host";
-    CloudFoundryPushTask task = new CloudFoundryPushTask(targetHost, null, null, null, false, 0, null, null);
+    CloudFoundryPushTask task = new CloudFoundryPushTask(targetHost, null, null, null, "false", "0", null, null);
     ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
@@ -33,7 +33,7 @@ public class CloudFoundryPushTaskTest {
   public void testCreateConnectionContextHostAndPort() throws Exception {
     String targetHost = "api.the.cloudfoundry.host";
     Integer port = Integer.valueOf(12345);
-    CloudFoundryPushTask task = new CloudFoundryPushTask(targetHost + ":" + port, null, null, null, false, 0, null, null);
+    CloudFoundryPushTask task = new CloudFoundryPushTask(targetHost + ":" + port, null, null, null, "false", "0", null, null);
     ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
@@ -46,7 +46,7 @@ public class CloudFoundryPushTaskTest {
   @Test
   public void testCreateConnectionContextHttpWithImplicitPort() throws Exception {
     String targetHost = "api.the.cloudfoundry.host";
-    CloudFoundryPushTask task = new CloudFoundryPushTask("http://" + targetHost, null, null, null, false, 0, null, null);
+    CloudFoundryPushTask task = new CloudFoundryPushTask("http://" + targetHost, null, null, null, null, null, null, null);
     ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
@@ -61,7 +61,7 @@ public class CloudFoundryPushTaskTest {
   public void testAllOptions() throws Exception {
     String targetHost = "api.the.cloudfoundry.host";
     Integer port = Integer.valueOf(12345);
-    CloudFoundryPushTask task = new CloudFoundryPushTask("http://" + targetHost + ":" + port + "/foo/bar", null, null, null, false, 0, null, null);
+    CloudFoundryPushTask task = new CloudFoundryPushTask("http://" + targetHost + ":" + port + "/foo/bar", null, null, null, null, null, null, null);
     ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;

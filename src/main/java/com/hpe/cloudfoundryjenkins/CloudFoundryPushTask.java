@@ -27,6 +27,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang.StringUtils;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.doppler.DopplerClient;
 import org.cloudfoundry.operations.CloudFoundryOperations;
@@ -61,12 +62,12 @@ public class CloudFoundryPushTask {
   private final String organization;
   private final String cloudSpace;
   private final String credentialsId;
-  private final boolean selfSigned;
-  private final int pluginTimeout;
+  private final String selfSigned;
+  private final String pluginTimeout;
   private final List<CloudFoundryPushPublisher.Service> servicesToCreate;
   private final CloudFoundryPushPublisher.ManifestChoice manifestChoice;
 
-  public CloudFoundryPushTask(String target, String organization, String cloudSpace, String credentialsId, boolean selfSigned, int pluginTimeout, List<CloudFoundryPushPublisher.Service> servicesToCreate, CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
+  public CloudFoundryPushTask(String target, String organization, String cloudSpace, String credentialsId, String selfSigned, String pluginTimeout, List<CloudFoundryPushPublisher.Service> servicesToCreate, CloudFoundryPushPublisher.ManifestChoice manifestChoice) {
     this.target = target;
     this.organization = organization;
     this.cloudSpace = cloudSpace;
@@ -164,12 +165,14 @@ public class CloudFoundryPushTask {
             }
 
             List<ApplicationManifest> manifests = ManifestUtils.loadManifests(masterPath, manifestChoice, isOnSlave, run, workspace, listener);
+            String s = TokenMacro.expandAll(run, workspace, listener, pluginTimeout);
+            long opTimeout = StringUtils.isBlank(s) ? 0 : Long.parseLong(s);
             for(final ApplicationManifest manifest : manifests) {
               cloudFoundryOperations.applications().pushManifest(PushApplicationManifestRequest.builder().manifest(manifest).build())
-                  .timeout(Duration.ofSeconds(pluginTimeout))
+                  .timeout(Duration.ofSeconds(opTimeout))
                   .doOnError(e -> e.printStackTrace(listener.getLogger()))
                   .block();
-              printStagingLogs(cloudFoundryOperations, listener, manifest.getName());
+              printStagingLogs(cloudFoundryOperations, listener, manifest.getName(), opTimeout);
             }
             if (!masterPath.equals(workspace)) {
               masterPath.deleteRecursive();
@@ -235,9 +238,9 @@ public class CloudFoundryPushTask {
     }
 
     private void printStagingLogs(CloudFoundryOperations cloudFoundryOperations,
-                                  final TaskListener listener, String appName) {
+                                  final TaskListener listener, String appName, final long printStagingLogsTimeout) {
       cloudFoundryOperations.applications().logs(LogsRequest.builder().name(appName).recent(Boolean.TRUE).build())
-        .timeout(Duration.ofSeconds(pluginTimeout))
+        .timeout(Duration.ofSeconds(printStagingLogsTimeout))
         .doOnNext(applicationLog -> listener.getLogger().println(applicationLog.getMessage()))
         .blockLast();
 
@@ -288,10 +291,11 @@ public class CloudFoundryPushTask {
           port = Integer.parseInt(portNumber);
         }
       }
+      String skipSslValidation = run != null ? TokenMacro.expandAll(run, workspace, listener, selfSigned) : selfSigned;
       DefaultConnectionContext.Builder builder = DefaultConnectionContext.builder()
                 .apiHost(targetFqdn)
                 .proxyConfiguration(CloudFoundryUtils.buildProxyConfiguration(targetUrl(tokenExpandedTarget)))
-                .skipSslValidation(selfSigned);
+                .skipSslValidation(Boolean.parseBoolean(skipSslValidation));
       if (secure != null) {
         builder = builder.secure(secure.booleanValue());
       }

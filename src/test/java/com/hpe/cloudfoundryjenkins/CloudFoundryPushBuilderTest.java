@@ -227,7 +227,7 @@ public class CloudFoundryPushBuilderTest {
 
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -258,7 +258,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<EnvironmentVariable>(), new ArrayList<ServiceName>());
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setManifestChoice(manifest);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -291,7 +291,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<EnvironmentVariable>(), new ArrayList<ServiceName>());
     CloudFoundryPushBuilder cf1 = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf1.setSelfSigned(true);
+    cf1.setSelfSigned("true");
     cf1.setManifestChoice(manifest1);
     project.getBuildersList().add(cf1);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -312,7 +312,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<EnvironmentVariable>(), new ArrayList<ServiceName>());
     CloudFoundryPushBuilder cf2 = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf2.setSelfSigned(true);
+    cf2.setSelfSigned("true");
     cf2.setManifestChoice(manifest2);
     project.getBuildersList().add(cf2);
     build = project.scheduleBuild2(0).get();
@@ -335,7 +335,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<EnvironmentVariable>(), new ArrayList<ServiceName>());
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setManifestChoice(manifest);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -368,7 +368,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<>(), new ArrayList<>());
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setManifestChoice(manifest);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -396,7 +396,7 @@ public class CloudFoundryPushBuilderTest {
     project.setScm(new ExtractResourceSCM(getClass().getResource("cloudfoundry-multi-hello-java.zip")));
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -437,7 +437,7 @@ public class CloudFoundryPushBuilderTest {
             null, null, null, null, null, null, null, null, null, null, null, null, null);
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setManifestChoice(manifestChoice);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -472,7 +472,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<>(), new ArrayList<>());
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setManifestChoice(manifest);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -493,7 +493,7 @@ public class CloudFoundryPushBuilderTest {
     project.setScm(new ExtractResourceSCM(getClass().getResource("python-env.zip")));
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -534,7 +534,7 @@ public class CloudFoundryPushBuilderTest {
     project.setScm(new ExtractResourceSCM(getClass().getResource("python-env-services.zip")));
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -567,7 +567,7 @@ public class CloudFoundryPushBuilderTest {
 
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setServicesToCreate(serviceList);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -608,7 +608,7 @@ public class CloudFoundryPushBuilderTest {
 
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setServicesToCreate(serviceList);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -641,7 +641,7 @@ public class CloudFoundryPushBuilderTest {
                     new ArrayList<>(), new ArrayList<>());
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setManifestChoice(manifest);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
@@ -662,7 +662,7 @@ public class CloudFoundryPushBuilderTest {
     project.setScm(new ExtractResourceSCM(getClass().getResource("cloudfoundry-hello-java.zip")));
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder("https://does-not-exist.local",
             TEST_ORG, TEST_SPACE, "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -685,7 +685,7 @@ public class CloudFoundryPushBuilderTest {
                     "wrongName", "wrongPass"));
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "wrongCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -709,7 +709,7 @@ public class CloudFoundryPushBuilderTest {
 
     CloudFoundryPushBuilder cf = new CloudFoundryPushBuilder(TEST_TARGET, TEST_ORG, TEST_SPACE,
             "testCredentialsId");
-    cf.setSelfSigned(true);
+    cf.setSelfSigned("true");
     cf.setServicesToCreate(serviceList);
     project.getBuildersList().add(cf);
     FreeStyleBuild build = project.scheduleBuild2(0).get();

@@ -47,7 +47,7 @@ public class CloudFoundryPushPublisher extends Recorder {
   /**
    * Whether to ignore ssl validation errors.
    */
-  public boolean selfSigned;
+  public String selfSigned;
 
   /**
    * Whether to reset the app if it already existed.
@@ -58,7 +58,7 @@ public class CloudFoundryPushPublisher extends Recorder {
   /**
    * Timeout for all cloudfoundry api calls.
    */
-  public int pluginTimeout;
+  public String pluginTimeout;
 
   /**
    * Services to create before pushing.
@@ -87,8 +87,8 @@ public class CloudFoundryPushPublisher extends Recorder {
    */
   @DataBoundConstructor
   public CloudFoundryPushPublisher(String target, String organization, String cloudSpace,
-          String credentialsId, boolean selfSigned,
-          boolean resetIfExists, int pluginTimeout, List<Service> servicesToCreate,
+          String credentialsId, String selfSigned,
+          boolean resetIfExists, String pluginTimeout, List<Service> servicesToCreate,
           ManifestChoice manifestChoice) {
     this.target = target;
     this.organization = organization;
@@ -96,10 +96,19 @@ public class CloudFoundryPushPublisher extends Recorder {
     this.credentialsId = credentialsId;
     this.selfSigned = selfSigned;
     this.resetIfExists = resetIfExists;
-    if (pluginTimeout == 0) {
-      this.pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
+    if (pluginTimeout == null) {
+      this.pluginTimeout = String.valueOf(CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT);
     } else {
-      this.pluginTimeout = pluginTimeout;
+      try {
+        int i = Integer.parseInt(pluginTimeout);
+        if (i <= 0) {
+          this.pluginTimeout = String.valueOf(CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT);
+        } else {
+          this.pluginTimeout = pluginTimeout;
+        }
+      } catch (NumberFormatException ignored) {
+        this.pluginTimeout = pluginTimeout;
+      }
     }
     if (servicesToCreate == null) {
       this.servicesToCreate = new ArrayList<>();
@@ -421,9 +430,6 @@ public class CloudFoundryPushPublisher extends Recorder {
   private Object readResolve() {
     if (servicesToCreate == null) { // Introduced in 1.4
       this.servicesToCreate = new ArrayList<>();
-    }
-    if (pluginTimeout == 0) { // Introduced in 1.5
-      this.pluginTimeout = CloudFoundryUtils.DEFAULT_PLUGIN_TIMEOUT;
     }
     return this;
   }
