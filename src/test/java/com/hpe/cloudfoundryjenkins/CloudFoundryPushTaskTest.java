@@ -3,6 +3,7 @@
  */
 package com.hpe.cloudfoundryjenkins;
 
+import hudson.model.TaskListener;
 import org.cloudfoundry.reactor.ConnectionContext;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.junit.Test;
@@ -20,7 +21,7 @@ public class CloudFoundryPushTaskTest {
   public void testCreateConnectionContextJustHost() throws Exception {
     String targetHost = "api.the.cloudfoundry.host";
     CloudFoundryPushTask task = new CloudFoundryPushTask(targetHost, null, null, null, false, 0, null, null);
-    ConnectionContext context = task.createConnectionContext();
+    ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertFalse("should not explicitly set the secure field", c.getSecure().isPresent());
@@ -33,7 +34,7 @@ public class CloudFoundryPushTaskTest {
     String targetHost = "api.the.cloudfoundry.host";
     Integer port = Integer.valueOf(12345);
     CloudFoundryPushTask task = new CloudFoundryPushTask(targetHost + ":" + port, null, null, null, false, 0, null, null);
-    ConnectionContext context = task.createConnectionContext();
+    ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertFalse("should not explicitly set the secure field", c.getSecure().isPresent());
@@ -46,7 +47,7 @@ public class CloudFoundryPushTaskTest {
   public void testCreateConnectionContextHttpWithImplicitPort() throws Exception {
     String targetHost = "api.the.cloudfoundry.host";
     CloudFoundryPushTask task = new CloudFoundryPushTask("http://" + targetHost, null, null, null, false, 0, null, null);
-    ConnectionContext context = task.createConnectionContext();
+    ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertTrue("should explicitly set the secure field", c.getSecure().isPresent());
@@ -61,7 +62,7 @@ public class CloudFoundryPushTaskTest {
     String targetHost = "api.the.cloudfoundry.host";
     Integer port = Integer.valueOf(12345);
     CloudFoundryPushTask task = new CloudFoundryPushTask("http://" + targetHost + ":" + port + "/foo/bar", null, null, null, false, 0, null, null);
-    ConnectionContext context = task.createConnectionContext();
+    ConnectionContext context = task.createConnectionContext(null, null, TaskListener.NULL);
     assertTrue("context is of the wrong class", context instanceof DefaultConnectionContext);
     DefaultConnectionContext c = (DefaultConnectionContext) context;
     assertTrue("should explicitly set the secure field", c.getSecure().isPresent());

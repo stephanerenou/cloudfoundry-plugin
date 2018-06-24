@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.hpe.cloudfoundryjenkins.CloudFoundryPushPublisher.ManifestChoice;
 import hudson.ProxyConfiguration;
 import hudson.model.ItemGroup;
+import hudson.model.TaskListener;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
@@ -109,7 +110,7 @@ public class CloudFoundryUtils {
 
             CloudFoundryPushTask task = new CloudFoundryPushTask(target, organization, cloudSpace, credentialsId, selfSigned, DEFAULT_PLUGIN_TIMEOUT, Collections.emptyList(), ManifestChoice.defaultManifestFileConfig());
 
-            ConnectionContext connectionContext = task.createConnectionContext();
+            ConnectionContext connectionContext = task.createConnectionContext(null, null, TaskListener.NULL);
 
             PasswordGrantTokenProvider.Builder tokenProviderBuilder = PasswordGrantTokenProvider.builder();
             if (credentials != null) {
@@ -126,7 +127,7 @@ public class CloudFoundryUtils {
             client.info().get(GetInfoRequest.builder().build())
                 .timeout(Duration.ofSeconds(DEFAULT_PLUGIN_TIMEOUT))
                 .block();
-            URL targetUrl = task.targetUrl();
+            URL targetUrl = task.targetUrl(target);
             List<String> warnings = new ArrayList<>();
             if (!targetUrl.getHost().startsWith("api.")) {
               warnings.add("Your target's hostname does not start with \"api.\".<br />" +

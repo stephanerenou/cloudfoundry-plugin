@@ -245,9 +245,9 @@ public class CloudFoundryPushTask {
 
     private static final Pattern TARGET_PATTERN = Pattern.compile("((?<scheme>https?)://)?(?<targetFqdn>[^:/]+)(:(?<port>\\d+))?(/.*)?");
 
-    protected URL targetUrl() throws MalformedURLException {
+    protected URL targetUrl(String tokenExpandedTarget) throws MalformedURLException {
       String scheme = "https";
-      String targetFqdn = target;
+      String targetFqdn = tokenExpandedTarget;
       Integer port = null;
       Matcher targetMatcher = TARGET_PATTERN.matcher(target);
       if (targetMatcher.find()) {
@@ -270,9 +270,10 @@ public class CloudFoundryPushTask {
     protected ConnectionContext createConnectionContext(Run run, FilePath workspace, TaskListener listener) throws MalformedURLException, MacroEvaluationException, IOException, InterruptedException {
       String scheme = "https";
       Boolean secure = null;
-      String targetFqdn = TokenMacro.expandAll(run, workspace, listener, target);
+      String tokenExpandedTarget = run != null ? TokenMacro.expandAll(run, workspace, listener, target) : target;
+      String targetFqdn = tokenExpandedTarget;
       Integer port = null;
-      Matcher targetMatcher = TARGET_PATTERN.matcher(TokenMacro.expandAll(run, workspace, listener, target));
+      Matcher targetMatcher = TARGET_PATTERN.matcher(targetFqdn);
       if (targetMatcher.find()) {
         if (targetMatcher.group("scheme") != null) {
           scheme = targetMatcher.group("scheme");
@@ -289,7 +290,7 @@ public class CloudFoundryPushTask {
       }
       DefaultConnectionContext.Builder builder = DefaultConnectionContext.builder()
                 .apiHost(targetFqdn)
-                .proxyConfiguration(CloudFoundryUtils.buildProxyConfiguration(targetUrl()))
+                .proxyConfiguration(CloudFoundryUtils.buildProxyConfiguration(targetUrl(tokenExpandedTarget)))
                 .skipSslValidation(selfSigned);
       if (secure != null) {
         builder = builder.secure(secure.booleanValue());
