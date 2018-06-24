@@ -45,6 +45,8 @@ import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 import org.cloudfoundry.uaa.UaaClient;
+import org.jenkinsci.plugins.tokenmacro.MacroEvaluationException;
+import org.jenkinsci.plugins.tokenmacro.TokenMacro;
 import reactor.core.publisher.Flux;
 
 /**
@@ -87,17 +89,17 @@ public class CloudFoundryPushTask {
                     StandardUsernamePasswordCredentials.class,
                     run.getParent(),
                     ACL.SYSTEM,
-                    URIRequirementBuilder.fromUri(target).build());
+                    URIRequirementBuilder.fromUri(TokenMacro.expandAll(run, workspace, listener, target)).build());
 
             StandardUsernamePasswordCredentials credentials =
-                    CredentialsMatchers.firstOrNull(standardCredentials, CredentialsMatchers.withId(credentialsId));
+                    CredentialsMatchers.firstOrNull(standardCredentials, CredentialsMatchers.withId(TokenMacro.expandAll(run, workspace, listener, credentialsId)));
 
             if (credentials == null) {
                 listener.getLogger().println("ERROR: No credentials have been given.");
                 return false;
             }
 
-            ConnectionContext connectionContext = createConnectionContext();
+            ConnectionContext connectionContext = createConnectionContext(run, workspace, listener);
 
             TokenProvider tokenProvider = PasswordGrantTokenProvider.builder()
                 .username(credentials.getUsername())
@@ -123,8 +125,8 @@ public class CloudFoundryPushTask {
                 .cloudFoundryClient(client)
                 .dopplerClient(dopplerClient)
                 .uaaClient(uaaClient)
-                .organization(organization)
-                .space(cloudSpace)
+                .organization(TokenMacro.expandAll(run, workspace, listener, organization))
+                .space(TokenMacro.expandAll(run, workspace, listener, cloudSpace))
                 .build();
 
             // Create services before push
@@ -132,23 +134,24 @@ public class CloudFoundryPushTask {
             List<String> currentServicesNames = currentServicesList.map(service -> service.getName()).collectList().block();
 
             for (CloudFoundryPushPublisher.Service service : servicesToCreate) {
+                final String serviceName = TokenMacro.expandAll(run, workspace, listener, service.name);
                 boolean createService = true;
-                if (currentServicesNames.contains(service.name)) {
+                if (currentServicesNames.contains(serviceName)) {
                     if (service.resetService) {
-                        listener.getLogger().println("Service " + service.name + " already exists, resetting.");
-                        cloudFoundryOperations.services().deleteInstance(DeleteServiceInstanceRequest.builder().name(service.name).build()).block();
+                        listener.getLogger().println("Service " + serviceName + " already exists, resetting.");
+                        cloudFoundryOperations.services().deleteInstance(DeleteServiceInstanceRequest.builder().name(serviceName).build()).block();
                         listener.getLogger().println("Service deleted.");
                     } else {
                         createService = false;
-                        listener.getLogger().println("Service " + service.name + " already exists, skipping creation.");
+                        listener.getLogger().println("Service " + serviceName + " already exists, skipping creation.");
                     }
                 }
                 if (createService) {
-                    listener.getLogger().println("Creating service " + service.name);
+                    listener.getLogger().println("Creating service " + serviceName);
                     cloudFoundryOperations.services().createInstance(CreateServiceInstanceRequest.builder()
-                        .serviceName(service.type)
-                        .serviceInstanceName(service.name)
-                        .planName(service.plan)
+                        .serviceName(TokenMacro.expandAll(run, workspace, listener, service.type))
+                        .serviceInstanceName(serviceName)
+                        .planName(TokenMacro.expandAll(run, workspace, listener, service.plan))
                         .build()).block();
                 }
             }
@@ -264,12 +267,12 @@ public class CloudFoundryPushTask {
       return new URL(sb.toString());
     }
 
-    protected ConnectionContext createConnectionContext() throws MalformedURLException {
+    protected ConnectionContext createConnectionContext(Run run, FilePath workspace, TaskListener listener) throws MalformedURLException, MacroEvaluationException, IOException, InterruptedException {
       String scheme = "https";
       Boolean secure = null;
-      String targetFqdn = target;
+      String targetFqdn = TokenMacro.expandAll(run, workspace, listener, target);
       Integer port = null;
-      Matcher targetMatcher = TARGET_PATTERN.matcher(target);
+      Matcher targetMatcher = TARGET_PATTERN.matcher(TokenMacro.expandAll(run, workspace, listener, target));
       if (targetMatcher.find()) {
         if (targetMatcher.group("scheme") != null) {
           scheme = targetMatcher.group("scheme");
