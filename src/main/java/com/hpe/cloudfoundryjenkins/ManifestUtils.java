@@ -44,7 +44,15 @@ public class ManifestUtils {
   }
 
   private static List<ApplicationManifest> loadManifestFiles(FilePath filesPath, CloudFoundryPushPublisher.ManifestChoice manifestChoice, Run run, FilePath workspace, TaskListener taskListener) throws IOException, InterruptedException, MacroEvaluationException {
-    List<String> manifestContents = IOUtils.readLines(new FilePath(filesPath, manifestChoice.getManifestFile()).read());
+    String tokenExpandedManifestPath = TokenMacro.expandAll(run, workspace, taskListener, manifestChoice.getManifestFile());
+    FilePath manifestPath;
+    File f = new File(tokenExpandedManifestPath);
+    if (f.isAbsolute()) {
+      manifestPath = new FilePath(f);
+    } else {
+      manifestPath = new FilePath(filesPath, tokenExpandedManifestPath);
+    }
+    List<String> manifestContents = IOUtils.readLines(manifestPath.read());
     StringBuilder sb = new StringBuilder();
     for (String line : manifestContents) {
       String tokenExpandedLine = TokenMacro.expandAll(run, workspace, taskListener, line);

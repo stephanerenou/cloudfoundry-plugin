@@ -111,4 +111,50 @@ public class ManifestUtilsTest {
     assertEquals(expectedEnvVars, manifest.getEnvironmentVariables());
     assertEquals("mysql", manifest.getServices().get(0));
   }
+
+  @Test
+  @Issue("JENKINS-31208")
+  public void testManifestFilePathTokenExpansion() throws Exception {
+    File folder = tempFolder.newFolder();
+    File f = new File(folder, "manifest.yml");
+    InputStream input = getClass().getResourceAsStream("token-macro-manifest.yml");
+    OutputStream output = new FileOutputStream(f);
+    IOUtils.copy(input, output);
+
+    FilePath manifestPath = new FilePath(folder);
+
+    FreeStyleProject project = jenkinsRule.createFreeStyleProject();
+    FreeStyleBuild build = project.scheduleBuild2(0).get();
+    build.setDisplayName("manifest.yml");
+    ManifestChoice manifestChoice = new ManifestChoice();
+    manifestChoice.setManifestFile("$BUILD_DISPLAY_NAME");
+    List<ApplicationManifest> actual = ManifestUtils.loadManifests(manifestPath, manifestChoice, false, build, build.getWorkspace(), TaskListener.NULL);
+
+    assertEquals(1, actual.size());
+    ApplicationManifest manifest = actual.get(0);
+    assertEquals("manifest.yml", manifest.getName());
+  }
+
+  @Test
+  @Issue("JENKINS-31208")
+  public void testManifestFilePathTokenExpansionAbsolutePath() throws Exception {
+    File folder = tempFolder.newFolder();
+    File f = new File(folder, "manifest.yml");
+    InputStream input = getClass().getResourceAsStream("token-macro-manifest.yml");
+    OutputStream output = new FileOutputStream(f);
+    IOUtils.copy(input, output);
+
+    FilePath manifestPath = new FilePath(folder);
+
+    FreeStyleProject project = jenkinsRule.createFreeStyleProject();
+    FreeStyleBuild build = project.scheduleBuild2(0).get();
+    build.setDisplayName(f.getAbsolutePath());
+    ManifestChoice manifestChoice = new ManifestChoice();
+    manifestChoice.setManifestFile("$BUILD_DISPLAY_NAME");
+    List<ApplicationManifest> actual = ManifestUtils.loadManifests(manifestPath, manifestChoice, false, build, build.getWorkspace(), TaskListener.NULL);
+
+    assertEquals(1, actual.size());
+    ApplicationManifest manifest = actual.get(0);
+    assertEquals(f.getAbsolutePath(), manifest.getName());
+  }
 }
