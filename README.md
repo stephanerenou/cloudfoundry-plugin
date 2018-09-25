@@ -113,7 +113,7 @@ pushToCloudFoundry(
     cloudSpace: 'pcfdev-space',
     credentialsId: 'pcfdev_user',
     selfSigned: true, // default value is false
-    pluginTimeout: 240, // default value is 120
+    pluginTimeout: '240', // default value is 120
     servicesToCreate: [
       [name: 'mysql-spring', type: 'p-mysql', plan: '512', resetService: true]
     ],
